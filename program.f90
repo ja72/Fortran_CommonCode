@@ -5,12 +5,52 @@ implicit none
     
     call RANDOM_SEED()
     
-    call test_mod_show()
+    !call test_mod_show()
     !call test_mod_vectors()
+    call test_array_inv()
     !call test_nasa_ode()
     !call test_nasa_quat()
     
     contains
+    
+    subroutine test_array_inv()
+    use mod_array_inv
+    use mod_show_matrix
+    
+    real(wp), allocatable :: A(:,:), b(:), x(:), A_inv(:,:)
+    real(wp) :: d
+    integer n
+    
+    do n=1, 4
+        allocate(A(n,n))
+        allocate(b(n))
+        call RANDOM_NUMBER(A)
+        call RANDOM_NUMBER(b)
+        b = -1 + 2._wp*b
+        
+        print *,"Size = ", n
+        
+        print *, "A="
+        call show(A)
+                
+        d = det(A)
+        print *, "det(A) = ", d
+        
+        A_inv = inv(A)
+        print *, "inv(A)="
+        call show(A_inv)
+        
+        print *, "b="
+        x = solve(A,b)
+        print *, "x="
+        call show(x)
+        print *, "max(error)=", maxval(abs(b - matmul(A,x)))
+        
+        deallocate(A)
+        deallocate(b)
+    end do
+    
+    end subroutine
     
     subroutine test_mod_show()
     use mod_show_matrix
@@ -18,28 +58,23 @@ implicit none
     integer, parameter :: n = 12, m = 6
     
     integer :: iA(n,m), iV(n)
-    real :: rA(n,m), rV(n)
     real(real64) :: dA(n,m), dV(n)
     
     call RANDOM_NUMBER(dV)    
     call RANDOM_NUMBER(dA)
     
     dV = -1000.0d0 + 2000.0d0 * dV
-    dA = -1000.0d0 + 2000.0d0 * dA
+    dA = 1 + 1.0d8 * dA
     
-    rV = REAL(dV)
     iV = NINT(dV)
-    rA = REAL(dA)
     iA = NINT(dA)
     
     print *, "Vectors"
     call show(iV)
-    call show(rV)
     call show(dV)
     
     print *, "Matrices"
     call show(iA)
-    call show(rA)
     call show(dA)
     
     end subroutine
