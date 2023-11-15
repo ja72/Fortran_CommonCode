@@ -1,4 +1,3 @@
-  
 module mod_array_inv
 use mod_common
 implicit none
