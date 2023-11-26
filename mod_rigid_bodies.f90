@@ -93,7 +93,7 @@
     class(rigid_body),intent(in) :: rb
     real(wp), intent(in) :: R(3,3)
     logical, intent(in), optional :: inv
-    real(wp) :: Rt(3,3), I(3,3)
+    real(wp) :: I(3,3)
     integer :: n
         if( present(inv) .and. inv) then
             forall(n=1:3)
@@ -209,13 +209,19 @@
     
     subroutine test_rb_sim()
     use mod_show_matrix
+    use mod_nasa_ode
     type(rigid_body) :: rb
-    real(wp) :: r_A(3), q(4), v_A(3), omega(3), F(3), tau(3), c(3), I_C(3,3)
-    real(wp) :: h, KE
-    real(wp), dimension(n_state) :: state, rate, K0, K1, K2, K3, next
+    real(wp) :: r_A(3), q(4), v_A(3), omega(3), c(3), I_C(3,3)
+    real(wp) :: KE, omg_max, h_min, p(3), L_A(3), F(3), tau(3)
+    real(wp), dimension(n_state) :: state, rate
+    integer :: i, n, flag
+    real(wp) :: t,t_end, t_next, h, y(n_state), yp(n_state)
+    real ( kind = 8 ) abserr
+    real ( kind = 8 ) relerr
     
-        real(wp), parameter :: dia = 1, ht=0.125, m = 1
-        real(wp), parameter :: cg(3) = (dia/2)*i_
+    real(wp), parameter :: gravity_(3) = 0.0_wp*j_
+    real(wp), parameter :: dia = 1, ht=0.125, m = 1
+    real(wp), parameter :: cg(3) = o_
         
         rb = rb_cylinder(m, dia, ht, cg)
         print *, "RB MASS=", rb%mass
@@ -227,7 +233,7 @@
         r_A = o_
         print *, "r_A="
         call show(r_A)
-        q = quat(i_, 0.0_wp)
+        q = quat(i_, pi/2)
         print *, "q="
         call show(q)
         omega = 10*k_
@@ -238,8 +244,8 @@
         call show(v_A)  ! -5*j_
         
         state = rb_get_state(rb, r_A, q, v_A, omega)
-        print *, "state="
-        call show(state)
+        !print *, "state="
+        !call show(state)
         
         I_C = rb%get_mmoi(state)
         print *, "I_C="
@@ -248,42 +254,70 @@
         call rb%get_motion(state, c, v_A, omega)
         print *, "c="
         call show(c)
-        print *, "omega="
-        call show(omega)    ! 10*k_
-        print *, "v_A="
-        call show(v_A)      ! -5*j_
+        p = state(8:10)
+        print *, "p="
+        call show(p)
+        L_A = state(11:13)
+        print *, "L_A="
+        call show(L_A)
         
         KE = rb_get_kin_energy(rb, state)
         
-        print *, "KE (state)=", KE, NEW_LINE('a')
+        print *, "KE (state)=", KE
+        q = state(4:7)
+        print *, "q (mag) = ", quat_magnitude(q), NEW_LINE('a')
+        
+        omg_max = maxval(abs(omega))
+        h_min = 5/(deg*omg_max)
+        print *, "Ideal Time Step = ", real(h_min), NEW_LINE('a')
         tau = o_
-        F = o_
+        F = o_        
+                
+        t = 0.0_wp
+        t_end = 10.0_wp
+        y = state
+        yp = rb_get_state_rate(rb, y, F, tau)
+        abserr = sqrt ( epsilon ( t_end ) )
+        relerr = sqrt ( epsilon ( t_end ) )
+        flag = 1
+        write (*, '(a4,1x,a8,1x,*(a12,1x))') "i", "t", "KE", "omg_x", "omg_y", "omg_z", "L_A_x", "L_A_y", "L_A__z", "h"
+        call rb_get_motion(rb, y, c, v_A, omega)
+        KE = rb_get_kin_energy(rb, y)
+        L_A = y(11:13)
+        write (*, '(i4,1x,f8.3,1x,*(f12.6,1x))') 0, t, KE, omega, L_A
+        i = 1
+        do while(t<=t_end .and. ( abs(flag)==1 .or. abs(flag)==2))
+            q = y(4:7)
+            y(4:7) = quat_normalize(q)
+            t_next = t+45*h_min
+            call r8_rkf45(rb_rate, n_state, y, yp, t, t_next, relerr, abserr, flag, h)            
+            call rb_get_motion(rb, y, c, v_A, omega)
+            KE = rb_get_kin_energy(rb, y)
+            L_A = y(11:13)
+            write (*, '(i4,1x,f8.3,1x,*(f12.6,1x))') i, t, KE, omega, L_A, h
+            i = i + 1
+        end do
         
-        h = 0.05_wp
-        K0 = rb_get_state_rate(rb, state, F, tau)
-        K1 = rb_get_state_rate(rb, state + (h/2)*K0, F, tau)
-        K2 = rb_get_state_rate(rb, state + (h/2)*K1, F, tau)
-        K3 = rb_get_state_rate(rb, state + h*K2, F, tau)
+    contains
+    
+        pure subroutine rb_rate(t, n, y, yp)
+        real (wp), intent(in) :: t
+        integer, intent(in) :: n
+        real (wp), intent(in) :: y(n)
+        real (wp), intent(out) :: yp(n)
+        integer :: n_bodies, i, k
+        real(wp), dimension(n_state) :: state, rate
+            
+            n_bodies = n/n_state
+            
+            do i=1, n_bodies
+                k = 1 + n_state * (i-1)
+                state(1:n_state) = y(k:k+n_state-1)
+                rate = rb_get_state_rate(rb, state, F, tau)
+                yp(k:k+n_state-1) = rate(1:n_state)
+            end do
         
-        rate = (K0 + 2*K1 + 2*K2 + K3)/6
-        print *, "rate="
-        call show(rate)
-        
-        next = state + h * rate
-        print *, "next="
-        call show(next)
-        
-        call rb_get_motion(rb, next, c, v_A, omega)
-        print *, "c="
-        call show(c)
-        print *, "omega="
-        call show(omega)
-        v_A = cross(r_A + cg, omega)
-        print *, "v_A="
-        call show(v_A)
-        
-        KE = rb_get_kin_energy(rb, next)
-        print *, "KE (next)=", KE, NEW_LINE('a')
+        end subroutine
     
     end subroutine
     

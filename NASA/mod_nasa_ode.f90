@@ -15,26 +15,22 @@
     implicit none
     
     interface
-        subroutine r4_deriv_scalar(t,y,yp)
+        pure subroutine r8_deriv_scalar(t,y,yp)
         import
-        real ( kind = 4 ), intent(in) :: t
-        real ( kind = 4 ), intent(in) :: y
-        real ( kind = 4 ), intent(out):: yp
+        real ( kind = 8 ), intent(in) :: t
+        real ( kind = 8 ), intent(in) :: y
+        real ( kind = 8 ), intent(out):: yp
         end subroutine
-        subroutine r4_deriv_vector(t,n,y,yp)
+        
+        pure subroutine r4_deriv_vector(t,n,y,yp)
         import
         real   ( kind = 4 ), intent(in) :: t
         integer( kind = 4 ), intent(in) :: n
         real   ( kind = 4 ), intent(in) :: y(n)
         real   ( kind = 4 ), intent(out):: yp(n)
         end subroutine
-        subroutine r8_deriv_scalar(t,y,yp)
-        import
-        real ( kind = 8 ), intent(in) :: t
-        real ( kind = 8 ), intent(in) :: y
-        real ( kind = 8 ), intent(out):: yp
-        end subroutine
-        subroutine r8_deriv_vector(t,n,y,yp)
+        
+        pure subroutine r8_deriv_vector(t,n,y,yp)
         import
         real   ( kind = 8 ), intent(in) :: t
         integer( kind = 4 ), intent(in) :: n
@@ -46,7 +42,7 @@
     contains
     
 
-    subroutine rk4 ( t0, u0, dt, f, u )
+    pure subroutine rk4 ( t0, u0, dt, f, u )
 
     !*****************************************************************************80
     !
@@ -94,20 +90,20 @@
     !    estimate at time T0+DT.
     !
     implicit none
-
-    real ( kind = 8 ) dt
-    !external f
+    
+    real ( kind = 8 ) , intent(in) :: t0
+    real ( kind = 8 ) , intent(in) :: u0
+    real ( kind = 8 ) , intent(in) :: dt
     procedure(r8_deriv_scalar), pointer, intent(in) :: f
+    real ( kind = 8 ) , intent(out) :: u
+    
     real ( kind = 8 ) f0
     real ( kind = 8 ) f1
     real ( kind = 8 ) f2
     real ( kind = 8 ) f3
-    real ( kind = 8 ) t0
     real ( kind = 8 ) t1
     real ( kind = 8 ) t2
     real ( kind = 8 ) t3
-    real ( kind = 8 ) u
-    real ( kind = 8 ) u0
     real ( kind = 8 ) u1
     real ( kind = 8 ) u2
     real ( kind = 8 ) u3
@@ -134,7 +130,7 @@
 
     return
     end
-    subroutine rk4vec ( t0, m, u0, dt, f, u )
+    pure subroutine rk4vec ( t0, m, u0, dt, f, u )
 
     !*****************************************************************************80
     !
@@ -177,22 +173,22 @@
     !    estimate at time T0+DT.
     !
     implicit none
-
-    integer ( kind = 4 ) m
-
-    real ( kind = 8 ) dt
-    !external f
+    !subroutine rk4vec ( t0, m, u0, dt, f, u )
+    real ( kind = 8 ) , intent(in) :: t0
+    integer ( kind = 4 ) , intent(in) :: m
+    real ( kind = 8 ) , intent(in) :: u0(m)
+    real ( kind = 8 ) , intent(in) :: dt
     procedure(r8_deriv_vector), pointer, intent(in) :: f
+    real ( kind = 8 ) , intent(out) :: u(m)
+
+    
     real ( kind = 8 ) f0(m)
     real ( kind = 8 ) f1(m)
     real ( kind = 8 ) f2(m)
     real ( kind = 8 ) f3(m)
-    real ( kind = 8 ) t0
     real ( kind = 8 ) t1
     real ( kind = 8 ) t2
     real ( kind = 8 ) t3
-    real ( kind = 8 ) u(m)
-    real ( kind = 8 ) u0(m)
     real ( kind = 8 ) u1(m)
     real ( kind = 8 ) u2(m)
     real ( kind = 8 ) u3(m)
@@ -224,7 +220,7 @@
     return
     end
 
-    subroutine r4_fehl ( f, neqn, y, t, h, yp, f1, f2, f3, f4, f5, s )
+    pure subroutine r4_fehl ( f, neqn, y, t, h, yp, f1, f2, f3, f4, f5, s )
 
     !*****************************************************************************80
     !
@@ -300,22 +296,22 @@
     !    Output, real ( kind = 4 ) S(NEQN), the estimate of the solution at T+H.
     !
     implicit none
-
-    integer ( kind = 4 ) neqn
+    ! subroutine r4_fehl ( f, neqn, y, t, h, yp, f1, f2, f3, f4, f5, s )
+    procedure(r4_deriv_vector), pointer, intent(in) :: f
+    integer ( kind = 4 ) , intent(in) :: neqn
+    real ( kind = 4 ) , intent(in) :: y(neqn)
+    real ( kind = 4 ) , intent(in) :: t
+    real ( kind = 4 ) , intent(in) :: h
+    real ( kind = 4 ) , intent(in) :: yp(neqn)
+    real ( kind = 4 ) , intent(out) :: f1(neqn)
+    real ( kind = 4 ) , intent(out) :: f2(neqn)
+    real ( kind = 4 ) , intent(out) :: f3(neqn)
+    real ( kind = 4 ) , intent(out) :: f4(neqn)
+    real ( kind = 4 ) , intent(out) :: f5(neqn)
+    real ( kind = 4 ) , intent(out) :: s(neqn)
 
     real ( kind = 4 ) ch
     !external f
-    procedure(r4_deriv_vector), pointer, intent(in) :: f
-    real ( kind = 4 ) f1(neqn)
-    real ( kind = 4 ) f2(neqn)
-    real ( kind = 4 ) f3(neqn)
-    real ( kind = 4 ) f4(neqn)
-    real ( kind = 4 ) f5(neqn)
-    real ( kind = 4 ) h
-    real ( kind = 4 ) s(neqn)
-    real ( kind = 4 ) t
-    real ( kind = 4 ) y(neqn)
-    real ( kind = 4 ) yp(neqn)
 
     ch = h / 4.0E+00
 
@@ -373,7 +369,7 @@
 
     return
     end
-    subroutine r4_rkf45 ( f, neqn, y, yp, t, tout, relerr, abserr, flag )
+    pure subroutine r4_rkf45 ( f, neqn, y, yp, t, tout, relerr, abserr, flag, h)
 
     !*****************************************************************************80
     !
@@ -537,11 +533,18 @@
     !    addressed.
     !
     implicit none
+    
+    procedure(r4_deriv_vector), pointer, intent(in) :: f
+    integer ( kind = 4 ) , intent(in) :: neqn
+    real ( kind = 4 ) , intent(inout) :: y(neqn)
+    real ( kind = 4 ) , intent(inout) :: yp(neqn)
+    real ( kind = 4 ) , intent(inout) :: t
+    real ( kind = 4 ) , intent(in) :: tout
+    real ( kind = 4 ) , intent(inout) :: relerr
+    real ( kind = 4 ) , intent(in) :: abserr
+    integer ( kind = 4 ), intent(out) :: flag
+    real ( kind = 4 ), intent(out) :: h
 
-    integer ( kind = 4 ) neqn
-
-    real ( kind = 4 ) abserr
-    real ( kind = 4 ), save :: abserr_save = -1.0E+00
     real ( kind = 4 ) ae
     real ( kind = 4 ) dt
     real ( kind = 4 ) ee
@@ -549,39 +552,46 @@
     real ( kind = 4 ) eps
     real ( kind = 4 ) esttol
     real ( kind = 4 ) et
-    !external f
-    procedure(r4_deriv_vector), pointer, intent(in) :: f
+    
     real ( kind = 4 ) f1(neqn)
     real ( kind = 4 ) f2(neqn)
     real ( kind = 4 ) f3(neqn)
     real ( kind = 4 ) f4(neqn)
-    real ( kind = 4 ) f5(neqn)
-    real ( kind = 4 ), save :: h = -1.0E+00
-    logical hfaild
-    real ( kind = 4 ) hmin
-    integer ( kind = 4 ) flag
-    integer ( kind = 4 ), save :: flag_save = -1000
-    integer ( kind = 4 ), save :: init = -1000
-    integer ( kind = 4 ) k
-    integer ( kind = 4 ), save :: kflag = -1000
-    integer ( kind = 4 ), save :: kop = -1
-    integer ( kind = 4 ), parameter :: maxnfe = 3000
-    integer ( kind = 4 ) mflag
-    integer ( kind = 4 ), save :: nfe = -1
-    logical output
-    real ( kind = 4 ) relerr
-    real ( kind = 4 ) relerr_min
-    real ( kind = 4 ), save :: relerr_save = -1.0E+00
-    real ( kind = 4 ), parameter :: remin = 1.0E-12
+    real ( kind = 4 ) f5(neqn)    
     real ( kind = 4 ) s
     real ( kind = 4 ) scale
-    real ( kind = 4 ) t
     real ( kind = 4 ) tol
     real ( kind = 4 ) toln
-    real ( kind = 4 ) tout
-    real ( kind = 4 ) y(neqn)
-    real ( kind = 4 ) yp(neqn)
     real ( kind = 4 ) ypk
+    
+    integer ( kind = 4 ), parameter :: maxnfe = 3000
+    real ( kind = 4 ), parameter :: remin = 1.0E-12
+    
+    logical hfaild
+    real ( kind = 4 ) hmin
+    integer ( kind = 4 ) k
+    integer ( kind = 4 ) mflag
+    logical output
+    real ( kind = 4 ) relerr_min
+    real ( kind = 4 ) :: relerr_save 
+    real ( kind = 4 ) :: abserr_save 
+    integer ( kind = 4 ) :: flag_save 
+    integer ( kind = 4 ) :: init 
+    integer ( kind = 4 ) :: kflag 
+    integer ( kind = 4 ) :: kop 
+    integer ( kind = 4 ) :: nfe 
+    !
+    ! Default Vaalues
+    !
+    h = -1.0E+00
+    relerr_save = -1.0E+00
+    abserr_save = -1.0E+00
+    flag_save = -1000
+    init = -1000
+    kflag = -1000
+    kop = -1
+    nfe = -1
+    
     !
     !  Check the input parameters.
     !
@@ -635,23 +645,32 @@
 
             else if ( kflag == 5 .and. abserr == 0.0E+00 ) then
 
-                write ( *, '(a)' ) ' '
-                write ( *, '(a)' ) 'R4_RKF45 - Fatal error!'
-                write ( *, '(a)' ) '  KFLAG = 5 and ABSERR = 0.0'
-                stop
+                error stop ' '//NEW_LINE('a') & 
+                    //'R4_RKF45 - Fatal error!'//NEW_LINE('a') & 
+                    //'  KFLAG = 5 and ABSERR = 0.0'//NEW_LINE('a') 
+                
+                !write ( *, '(a)' ) ' '
+                !write ( *, '(a)' ) 'R4_RKF45 - Fatal error!'
+                !write ( *, '(a)' ) '  KFLAG = 5 and ABSERR = 0.0'
+                !stop
 
             else if ( &
                 kflag == 6 .and. &
                 relerr <= relerr_save .and. &
                 abserr <= abserr_save ) then
 
-                write ( *, '(a)' ) ' '
-                write ( *, '(a)' ) 'R4_RKF45 - Fatal error!'
-                write ( *, '(a)' ) '  KFLAG = 6 and'
-                write ( *, '(a)' ) '  RELERR <= RELERR_SAVE and'
-                write ( *, '(a)' ) '  ABSERR <= ABSERR_SAVE'
-
-                stop
+                error stop ' '//NEW_LINE('a') & 
+                    //'R4_RKF45 - Fatal error!'//NEW_LINE('a') & 
+                    //'  KFLAG = 6 and'//NEW_LINE('a') & 
+                    //'  RELERR <= RELERR_SAVE and'//NEW_LINE('a') & 
+                    //'  ABSERR <= ABSERR_SAVE'//NEW_LINE('a') 
+                
+                !write ( *, '(a)' ) ' '
+                !write ( *, '(a)' ) 'R4_RKF45 - Fatal error!'
+                !write ( *, '(a)' ) '  KFLAG = 6 and'
+                !write ( *, '(a)' ) '  RELERR <= RELERR_SAVE and'
+                !write ( *, '(a)' ) '  ABSERR <= ABSERR_SAVE'
+                !stop
 
             end if
             !
@@ -685,12 +704,19 @@
                 !  the instructions pertaining to FLAG = 5, 6, 7 or 8.
                 !
             else
-                write ( *, '(a)' ) ' '
-                write ( *, '(a)' ) 'R4_RKF45 - Fatal error!'
-                write ( *, '(a)' ) '  Integration cannot be continued.'
-                write ( *, '(a)' ) '  The user did not respond to the output'
-                write ( *, '(a)' ) '  value FLAG = 5, 6, 7, or 8.'
-                stop
+                
+                error stop ' '//NEW_LINE('a') & 
+                    //'R4_RKF45 - Fatal error!'//NEW_LINE('a') & 
+                    //'  Integration cannot be continued.'//NEW_LINE('a') & 
+                    //'  The user did not respond to the output'//NEW_LINE('a') & 
+                    //'  value FLAG = 5, 6, 7, or 8.'//NEW_LINE('a') 
+                
+                !write ( *, '(a)' ) ' '
+                !write ( *, '(a)' ) 'R4_RKF45 - Fatal error!'
+                !write ( *, '(a)' ) '  Integration cannot be continued.'
+                !write ( *, '(a)' ) '  The user did not respond to the output'
+                !write ( *, '(a)' ) '  value FLAG = 5, 6, 7, or 8.'
+                !stop
             end if
 
         end if
@@ -989,7 +1015,7 @@
 
     return
     end
-    subroutine r8_fehl ( f, neqn, y, t, h, yp, f1, f2, f3, f4, f5, s )
+    pure subroutine r8_fehl ( f, neqn, y, t, h, yp, f1, f2, f3, f4, f5, s )
 
     !*****************************************************************************80
     !
@@ -1065,22 +1091,22 @@
     !    Output, real ( kind = 8 ) S(NEQN), the estimate of the solution at T+H.
     !
     implicit none
-
-    integer ( kind = 4 ) neqn
+    ! subroutine r8_fehl ( f, neqn, y, t, h, yp, f1, f2, f3, f4, f5, s )
+    procedure(r8_deriv_vector), pointer, intent(in) :: f
+    integer ( kind = 4 ), intent(in) :: neqn
+    real ( kind = 8 ) , intent(in) :: y(neqn)
+    real ( kind = 8 ) , intent(in) :: t
+    real ( kind = 8 ) , intent(in) ::  h
+    real ( kind = 8 ) , intent(in) :: yp(neqn)
 
     real ( kind = 8 ) ch
     !external f
-    procedure(r8_deriv_vector), pointer, intent(in) :: f
-    real ( kind = 8 ) f1(neqn)
-    real ( kind = 8 ) f2(neqn)
-    real ( kind = 8 ) f3(neqn)
-    real ( kind = 8 ) f4(neqn)
-    real ( kind = 8 ) f5(neqn)
-    real ( kind = 8 ) h
-    real ( kind = 8 ) s(neqn)
-    real ( kind = 8 ) t
-    real ( kind = 8 ) y(neqn)
-    real ( kind = 8 ) yp(neqn)
+    real ( kind = 8 ) , intent(out) :: f1(neqn)
+    real ( kind = 8 ) , intent(out) :: f2(neqn)
+    real ( kind = 8 ) , intent(out) :: f3(neqn)
+    real ( kind = 8 ) , intent(out) :: f4(neqn)
+    real ( kind = 8 ) , intent(out) :: f5(neqn)
+    real ( kind = 8 ) , intent(out) :: s(neqn)
 
     ch = h / 4.0D+00
 
@@ -1138,7 +1164,7 @@
 
     return
     end
-    subroutine r8_rkf45 ( f, neqn, y, yp, t, tout, relerr, abserr, flag )
+    pure subroutine r8_rkf45 ( f, neqn, y, yp, t, tout, relerr, abserr, flag, h )
 
     !*****************************************************************************80
     !
@@ -1302,11 +1328,23 @@
     !    be addressed.
     !
     implicit none
-
-    integer ( kind = 4 ) neqn
-
-    real ( kind = 8 ) abserr
-    real ( kind = 8 ), save :: abserr_save = -1.0D+00
+    
+    procedure(r8_deriv_vector), pointer, intent(in) :: f
+    integer ( kind = 4 ), intent(in) :: neqn
+    real ( kind = 8 ), intent(inout) ::  t
+    real ( kind = 8 ), intent(inout) ::  y(neqn)
+    real ( kind = 8 ), intent(inout) ::  yp(neqn)
+    real ( kind = 8 ), intent(in) ::  tout
+    real ( kind = 8 ), intent(inout) ::  relerr
+    real ( kind = 8 ), intent(in) ::  abserr
+    integer ( kind = 4 ), intent(inout) :: flag
+    real ( kind = 8 ), intent(out) :: h
+    
+    integer ( kind = 4 ), parameter :: maxnfe = 3000
+    real ( kind = 8 ), parameter :: remin = 1.0E-12
+    
+    real ( kind = 8 ) :: relerr_save 
+    real ( kind = 8 ) :: abserr_save 
     real ( kind = 8 ) ae
     real ( kind = 8 ) dt
     real ( kind = 8 ) ee
@@ -1314,39 +1352,39 @@
     real ( kind = 8 ) eps
     real ( kind = 8 ) esttol
     real ( kind = 8 ) et
-    !external f
-    procedure(r8_deriv_vector), pointer, intent(in) :: f
     real ( kind = 8 ) f1(neqn)
     real ( kind = 8 ) f2(neqn)
     real ( kind = 8 ) f3(neqn)
     real ( kind = 8 ) f4(neqn)
     real ( kind = 8 ) f5(neqn)
-    real ( kind = 8 ), save :: h = -1.0D+00
     logical hfaild
     real ( kind = 8 ) hmin
-    integer ( kind = 4 ) flag
-    integer ( kind = 4 ), save :: flag_save = -1000
-    integer ( kind = 4 ), save :: init = -1000
     integer ( kind = 4 ) k
-    integer ( kind = 4 ), save :: kflag = -1000
-    integer ( kind = 4 ), save :: kop = -1
-    integer ( kind = 4 ), parameter :: maxnfe = 3000
     integer ( kind = 4 ) mflag
-    integer ( kind = 4 ), save :: nfe = -1
+    integer ( kind = 4 ) :: flag_save 
+    integer ( kind = 4 ) :: init 
+    integer ( kind = 4 ) :: kflag 
+    integer ( kind = 4 ) :: kop 
+    integer ( kind = 4 ) :: nfe 
     logical output
-    real ( kind = 8 ) relerr
     real ( kind = 8 ) relerr_min
-    real ( kind = 8 ), save :: relerr_save = -1.0D+00
-    real ( kind = 8 ), parameter :: remin = 1.0E-12
     real ( kind = 8 ) s
     real ( kind = 8 ) scale
-    real ( kind = 8 ) t
     real ( kind = 8 ) tol
     real ( kind = 8 ) toln
-    real ( kind = 8 ) tout
-    real ( kind = 8 ) y(neqn)
-    real ( kind = 8 ) yp(neqn)
     real ( kind = 8 ) ypk
+    !
+    ! Default Values
+    !
+    h = -1.0D+00
+    relerr_save = -1.0D+00
+    abserr_save = -1.0D+00
+    flag_save = -1000
+    init = -1000
+    kflag = -1000
+    kop = -1
+    nfe = -1
+    
     !
     !  Check the input parameters.
     !
@@ -1400,23 +1438,32 @@
 
             else if ( kflag == 5 .and. abserr == 0.0D+00 ) then
 
-                write ( *, '(a)' ) ' '
-                write ( *, '(a)' ) 'R8_RKF45 - Fatal error!'
-                write ( *, '(a)' ) '  KFLAG = 5 and ABSERR = 0.0'
-                stop
+                error stop ' '//NEW_LINE('a') & 
+                    //'R8_RKF45 - Fatal error!'//NEW_LINE('a') & 
+                    //'  KFLAG = 5 and ABSERR = 0.0'//NEW_LINE('a')
+                
+                !write ( *, '(a)' ) ' '
+                !write ( *, '(a)' ) 'R8_RKF45 - Fatal error!'
+                !write ( *, '(a)' ) '  KFLAG = 5 and ABSERR = 0.0'
+                !stop
 
             else if ( &
                 kflag == 6 .and. &
                 relerr <= relerr_save .and. &
                 abserr <= abserr_save ) then
 
-                write ( *, '(a)' ) ' '
-                write ( *, '(a)' ) 'R8_RKF45 - Fatal error!'
-                write ( *, '(a)' ) '  KFLAG = 6 and'
-                write ( *, '(a)' ) '  RELERR <= RELERR_SAVE and'
-                write ( *, '(a)' ) '  ABSERR <= ABSERR_SAVE'
-
-                stop
+                error stop ' '//NEW_LINE('a') & 
+                    //'R8_RKF45 - Fatal error!'//NEW_LINE('a') & 
+                    //'  KFLAG = 6 and'//NEW_LINE('a') & 
+                    //'  RELERR <= RELERR_SAVE and'//NEW_LINE('a') & 
+                    //'  ABSERR <= ABSERR_SAVE'//NEW_LINE('a') 
+                
+                !write ( *, '(a)' ) ' '
+                !write ( *, '(a)' ) 'R8_RKF45 - Fatal error!'
+                !write ( *, '(a)' ) '  KFLAG = 6 and'
+                !write ( *, '(a)' ) '  RELERR <= RELERR_SAVE and'
+                !write ( *, '(a)' ) '  ABSERR <= ABSERR_SAVE'
+                !stop
 
             end if
             !
@@ -1450,12 +1497,19 @@
                 !  the instructions pertaining to FLAG = 5, 6, 7 or 8.
                 !
             else
-                write ( *, '(a)' ) ' '
-                write ( *, '(a)' ) 'R8_RKF45 - Fatal error!'
-                write ( *, '(a)' ) '  Integration cannot be continued.'
-                write ( *, '(a)' ) '  The user did not respond to the output'
-                write ( *, '(a)' ) '  value FLAG = 5, 6, 7, or 8.'
-                stop
+                
+                error stop ' '//NEW_LINE('a') & 
+                    //'R8_RKF45 - Fatal error!'//NEW_LINE('a') & 
+                    //'  Integration cannot be continued.'//NEW_LINE('a') & 
+                    //'  The user did not respond to the output'//NEW_LINE('a') & 
+                    //'  value FLAG = 5, 6, 7, or 8.'//NEW_LINE('a') 
+                
+                !write ( *, '(a)' ) ' '
+                !write ( *, '(a)' ) 'R8_RKF45 - Fatal error!'
+                !write ( *, '(a)' ) '  Integration cannot be continued.'
+                !write ( *, '(a)' ) '  The user did not respond to the output'
+                !write ( *, '(a)' ) '  value FLAG = 5, 6, 7, or 8.'
+                !stop
             end if
 
         end if
@@ -1814,6 +1868,7 @@
     real ( kind = 4 ) t_stop
     real ( kind = 4 ) y(neqn)
     real ( kind = 4 ) yp(neqn)
+    real ( kind = 4 ) h
 
     write ( *, '(a)' ) ' '
     write ( *, '(a)' ) 'TEST01'
@@ -1852,7 +1907,7 @@
             + real (          i_step, kind = 4 ) * t_stop ) &
             / real ( n_step,          kind = 4 )
 
-        call r4_rkf45 ( r4_f1, neqn, y, yp, t, t_out, relerr, abserr, flag )
+        call r4_rkf45 ( r4_f1, neqn, y, yp, t, t_out, relerr, abserr, flag, h)
 
         write ( *, '(i4,2x,5g14.6)' ) flag, t, y(1), yp(1), r4_y1x ( t ), &
             y(1) - r4_y1x ( t )
@@ -1894,6 +1949,7 @@
     real ( kind = 4 ) t_stop
     real ( kind = 4 ) y(neqn)
     real ( kind = 4 ) yp(neqn)
+    real ( kind = 4 ) h
 
     write ( *, '(a)' ) ' '
     write ( *, '(a)' ) 'TEST02'
@@ -1939,7 +1995,7 @@
             + real (          i_step, kind = 4 ) * t_stop ) &
             / real ( n_step,          kind = 4 )
 
-        call r4_rkf45 ( r4_f2, neqn, y, yp, t, t_out, relerr, abserr, flag )
+        call r4_rkf45 ( r4_f2, neqn, y, yp, t, t_out, relerr, abserr, flag, h )
 
         write ( *, '(i4,2x,4g14.6)' ) flag, t, y(1), y(2)
 
@@ -1980,6 +2036,7 @@
     real ( kind = 4 ) t_stop
     real ( kind = 4 ) y(neqn)
     real ( kind = 4 ) yp(neqn)
+    real ( kind = 4 ) h
 
     write ( *, '(a)' ) ' '
     write ( *, '(a)' ) 'TEST03'
@@ -2026,7 +2083,7 @@
         !
         do while ( flag < 0 )
 
-            call r4_rkf45 ( r4_f1, neqn, y, yp, t, t_out, relerr, abserr, flag )
+            call r4_rkf45 ( r4_f1, neqn, y, yp, t, t_out, relerr, abserr, flag, h )
 
             write ( *, '(i4,2x,5g14.6)' ) flag, t, y(1), yp(1), r4_y1x ( t ), &
                 y(1) - r4_y1x ( t )
@@ -2064,10 +2121,10 @@
 
     integer ( kind = 4 ), parameter :: neqn = 1
 
-    real ( kind = 8 ) abserr
     integer ( kind = 4 ) flag
     integer ( kind = 4 ) i_step
     integer ( kind = 4 ) n_step
+    real ( kind = 8 ) abserr
     real ( kind = 8 ) relerr
     real ( kind = 8 ) t
     real ( kind = 8 ) t_out
@@ -2075,6 +2132,7 @@
     real ( kind = 8 ) t_stop
     real ( kind = 8 ) y(neqn)
     real ( kind = 8 ) yp(neqn)
+    real ( kind = 8 ) h
 
     write ( *, '(a)' ) ' '
     write ( *, '(a)' ) 'TEST04'
@@ -2113,7 +2171,7 @@
             + real (          i_step, kind = 8 ) * t_stop ) &
             / real ( n_step,          kind = 8 )
 
-        call r8_rkf45 ( r8_f1, neqn, y, yp, t, t_out, relerr, abserr, flag )
+        call r8_rkf45 ( r8_f1, neqn, y, yp, t, t_out, relerr, abserr, flag, h )
 
         write ( *, '(i4,2x,5g14.6)' ) flag, t, y(1), yp(1), r8_y1x ( t ), &
             y(1) - r8_y1x ( t )
@@ -2155,6 +2213,7 @@
     real ( kind = 8 ) t_stop
     real ( kind = 8 ) y(neqn)
     real ( kind = 8 ) yp(neqn)
+    real ( kind = 8 ) h
 
     write ( *, '(a)' ) ' '
     write ( *, '(a)' ) 'TEST05'
@@ -2195,7 +2254,7 @@
             + real (          i_step, kind = 8 ) * t_stop ) &
             / real ( n_step,          kind = 8 )
 
-        call r8_rkf45 ( r8_f2, neqn, y, yp, t, t_out, relerr, abserr, flag )
+        call r8_rkf45 ( r8_f2, neqn, y, yp, t, t_out, relerr, abserr, flag, h )
 
         write ( *, '(i4,2x,4g14.6)' ) flag, t, y(1), y(2)
 
@@ -2236,6 +2295,7 @@
     real ( kind = 8 ) t_stop
     real ( kind = 8 ) y(neqn)
     real ( kind = 8 ) yp(neqn)
+    real ( kind = 8 ) h
 
     write ( *, '(a)' ) ' '
     write ( *, '(a)' ) 'TEST06'
@@ -2282,7 +2342,7 @@
         !
         do while ( flag < 0 )
 
-            call r8_rkf45 ( r8_f1, neqn, y, yp, t, t_out, relerr, abserr, flag )
+            call r8_rkf45 ( r8_f1, neqn, y, yp, t, t_out, relerr, abserr, flag, h )
 
             write ( *, '(i4,2x,5g14.6)' ) flag, t, y(1), yp(1), r8_y1x ( t ), &
                 y(1) - r8_y1x ( t )
@@ -2298,7 +2358,7 @@
 
     return
     end
-    subroutine r4_f1 ( t, n, y, yp )
+    pure subroutine r4_f1 ( t, n, y, yp )
 
     !*****************************************************************************80
     !
@@ -2337,7 +2397,7 @@
     return
     end
     
-    function r4_y1x ( t )
+    pure function r4_y1x ( t )
 
     !*****************************************************************************80
     !
@@ -2363,14 +2423,14 @@
     !
     implicit none
 
-    real ( kind = 4 ) t
-    real ( kind = 4 ) r4_y1x
+    real ( kind = 4 ), intent(in) :: t
+    real ( kind = 4 ) :: r4_y1x
 
     r4_y1x = 20.0E+00 / ( 1.0E+00 + 19.0E+00 * exp ( - 0.25E+00 * t ) )
 
     return
     end
-    subroutine r4_f2 ( t, n, y, yp )
+    pure subroutine r4_f2 ( t, n, y, yp )
 
     !*****************************************************************************80
     !
@@ -2409,7 +2469,7 @@
 
     return
     end
-    subroutine r8_f1 ( t, n, y, yp )
+    pure subroutine r8_f1 ( t, n, y, yp )
 
     !*****************************************************************************80
     !
@@ -2448,7 +2508,7 @@
     return
     end
     
-    function r8_y1x ( t )
+    pure function r8_y1x ( t )
 
     !*****************************************************************************80
     !
@@ -2481,7 +2541,7 @@
 
     return
     end
-    subroutine r8_f2 ( t, n, y, yp )
+    pure subroutine r8_f2 ( t, n, y, yp )
 
     !*****************************************************************************80
     !
