@@ -188,13 +188,7 @@
             a(2), -a(1), 0._wp], [3,3])
         
     end function
-    
-    pure function quat_cross_product(a,b) result(c)
-    real(wp),  intent(in) :: a(4), b(4)
-    real(wp) ::  c(4)
-        c = [ 0._wp, vector_cross_product(a(2:4), b(2:4)) ]
-    end function
-    
+        
     function vector_mmoi_matrix(a) result(c)
     real(wp),  intent(in) :: a(3)
     real(wp) ::  c(3,3)
@@ -360,43 +354,97 @@
     pure function quat_rot_matrix(q, inv) result(R)
     real(wp),  intent(in) :: q(4)
     logical, intent(in), optional :: inv
-    real(wp) ::  s, c, axis(3), R(3,3), ax(3,3), axax(3,3)
-        c = q(1)
-        s = norm2(q(2:4))
-        axis = q(2:4)/s
-        ax = cross(axis)
-        axax = matmul(ax,ax)
+    real(wp) ::  q_s, q_v(3), R(3,3), qx(3,3), qxqx(3,3)
+    
+        q_s = q(1)
+        q_v = q(2:4)
+        qx = cross(q_v)
+        qxqx = matmul(qx,qx)
+        
         if( present(inv) .and. inv) then
-            s = -s
+            q_s = -q_s
         end if
-        R = eye_ + s*ax + (1-c)*axax        
+        
+        R = eye_ + 2*q_s*qx + 2*qxqx
     end function
     
     pure function quat_rot_vector(q, v, inv) result(r)
     real(wp),  intent(in) :: q(4), v(3)
     logical, intent(in), optional :: inv
-    real(wp) ::  s, c, axis(3), r(3), ax(3), axax(3)
-        c = q(1)
-        s = norm2(q(2:4))
-        axis = q(2:4)/s
-        ax = cross(axis, v)
-        axax = cross(axis,ax)
+    real(wp) ::  q_s, q_v(3), r(3), qxv(3), qxqxv(3)
+        q_s = q(1)
+        q_v = q(2:4)
+        qxv = cross(q_v,v)
+        qxqxv = cross(q_v, qxv)
+        
         if( present(inv) .and. inv) then
-            s = -s
+            q_s = -q_s
         end if
-        r = v + s*ax + (1-c)*axax        
+        
+        r = v + 2*q_s*qxv + 2*qxqxv
     end function
     
     pure function quat_conjugate(q) result(p)
-    real(wp),  intent(in) :: q(4)
+    real(wp), intent(in) :: q(4)
     real(wp) :: p(4)
         p = [ q(1), -q(2), -q(3), -q(4) ]
+    end function
+    
+    pure function quat_product(q_1,q_2) result(p)
+    real(wp), intent(in) :: q_1(4), q_2(4)
+    real(wp) :: p(4), s_1, s_2, v_1(3), v_2(3)
+        s_1 = q_1(1)
+        s_2 = q_2(1)
+        v_1 = q_1(2:4)
+        v_2 = q_2(2:4)
+        
+        p = [s_1*s_2 - dot_product(v_1,v_2), &
+            s_1*v_2 + s_2*v_1 + cross(v_1,v_2)]
+        
+    end function
+    
+    pure function quat_cross_product(q_1,q_2) result(p)
+    real(wp), intent(in) :: q_1(4), q_2(4)
+    real(wp) :: p(4), v_1(3), v_2(3)
+        v_1 = q_1(2:4)
+        v_2 = q_2(2:4)        
+        p = [0.0_wp, &
+            cross(v_1,v_2)]        
+    end function
+
+    pure function quat_dot_product(q_1,q_2) result(p)
+    real(wp), intent(in) :: q_1(4), q_2(4)
+    real(wp) :: p, s_1, s_2, v_1(3), v_2(3)
+        s_1 = q_1(1)
+        s_2 = q_2(1)
+        v_1 = q_1(2:4)
+        v_2 = q_2(2:4)
+        
+        p = s_1*s_2 + dot_product(v_1,v_2)
+        
+    end function
+    
+    pure function quat_magnitude(q) result(m)
+    real(wp),  intent(in) :: q(4)
+    real(wp) :: m    
+         m = sqrt(dot_product(q,q))
+    end function
+
+    pure function quat_normalize(q) result(p)
+    real(wp),  intent(in) :: q(4)
+    real(wp) :: p(4), m2
+        m2 = dot_product(q, q)
+        if( m2 >= 0.0_wp) then
+            p = q/sqrt(m2)
+        else
+            p = q
+        end if
     end function
     
     pure function quat_inv(q) result(p)
     real(wp),  intent(in) :: q(4)
     real(wp) :: p(4), m2
-        m2 = dot_product(q,q)
+        m2 = dot_product(q, q)
         if( m2 /= 1 .and. m2/=0) then
             p = [ q(1)/m2, -q(2)/m2, -q(3)/m2, -q(4)/m2 ]
         else if(m2 /= 0) then
