@@ -1,4 +1,6 @@
     module mod_nasa_quat
+    
+    real ( kind = 8 ), parameter :: r8_pi = 3.141592653589793D+00
 
     contains
 
@@ -31,7 +33,6 @@
 
     real ( kind = 8 ) angle_deg
     real ( kind = 8 ) degrees_to_radians
-    real ( kind = 8 ), parameter :: r8_pi = 3.141592653589793D+00
 
     degrees_to_radians = ( angle_deg / 180.0D+00 ) * r8_pi
 
@@ -369,7 +370,7 @@
     integer ( kind = 4 ) seed
     real ( kind = 8 ) q(4)
     real ( kind = 8 ) r(4)
-    real ( kind = 8 ), parameter :: r8_pi = 3.141592653589793D+00
+    
 
     call r8vec_uniform_01 ( 4, seed, r )
 
@@ -775,7 +776,6 @@
     implicit none
 
     real ( kind = 8 ) angle_rad
-    real ( kind = 8 ), parameter :: r8_pi = 3.141592653589793D+00
     real ( kind = 8 ) radians_to_degrees
 
     radians_to_degrees = ( angle_rad / r8_pi ) * 180.0D+00

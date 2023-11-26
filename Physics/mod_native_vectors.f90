@@ -188,13 +188,7 @@
             a(2), -a(1), 0._wp], [3,3])
         
     end function
-    
-    pure function quat_cross_product(a,b) result(c)
-    real(wp),  intent(in) :: a(4), b(4)
-    real(wp) ::  c(4)
-        c = [ 0._wp, vector_cross_product(a(2:4), b(2:4)) ]
-    end function
-    
+        
     function vector_mmoi_matrix(a) result(c)
     real(wp),  intent(in) :: a(3)
     real(wp) ::  c(3,3)
@@ -363,13 +357,17 @@
     real(wp) ::  s, c, axis(3), R(3,3), ax(3,3), axax(3,3)
         c = q(1)
         s = norm2(q(2:4))
-        axis = q(2:4)/s
-        ax = cross(axis)
-        axax = matmul(ax,ax)
-        if( present(inv) .and. inv) then
-            s = -s
+        if( s>0.0_wp) then
+            axis = q(2:4)/s
+            ax = cross(axis)
+            axax = matmul(ax,ax)
+            if( present(inv) .and. inv) then
+                s = -s
+            end if
+            R = eye_ + s*ax + (1-c)*axax        
+        else
+            R = eye_
         end if
-        R = eye_ + s*ax + (1-c)*axax        
     end function
     
     pure function quat_rot_vector(q, v, inv) result(r)
@@ -388,10 +386,45 @@
     end function
     
     pure function quat_conjugate(q) result(p)
-    real(wp),  intent(in) :: q(4)
+    real(wp), intent(in) :: q(4)
     real(wp) :: p(4)
         p = [ q(1), -q(2), -q(3), -q(4) ]
     end function
+    
+    pure function quat_product(q_1,q_2) result(p)
+    real(wp), intent(in) :: q_1(4), q_2(4)
+    real(wp) :: p(4), s_1, s_2, v_1(3), v_2(3)
+        s_1 = q_1(1)
+        s_2 = q_2(1)
+        v_1 = q_1(2:4)
+        v_2 = q_2(2:4)
+        
+        p = [s_1*s_2 - dot_product(v_1,v_2), &
+            s_1*v_2 + s_2*v_1 + cross(v_1,v_2)]
+        
+    end function
+    
+    pure function quat_cross_product(q_1,q_2) result(p)
+    real(wp), intent(in) :: q_1(4), q_2(4)
+    real(wp) :: p(4), v_1(3), v_2(3)
+        v_1 = q_1(2:4)
+        v_2 = q_2(2:4)        
+        p = [0.0_wp, &
+            cross(v_1,v_2)]        
+    end function
+
+    pure function quat_dot_product(q_1,q_2) result(p)
+    real(wp), intent(in) :: q_1(4), q_2(4)
+    real(wp) :: p, s_1, s_2, v_1(3), v_2(3)
+        s_1 = q_1(1)
+        s_2 = q_2(1)
+        v_1 = q_1(2:4)
+        v_2 = q_2(2:4)
+        
+        p = s_1*s_2 + dot_product(v_1,v_2)
+        
+    end function
+
     
     pure function quat_inv(q) result(p)
     real(wp),  intent(in) :: q(4)

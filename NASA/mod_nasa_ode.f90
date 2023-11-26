@@ -13,6 +13,35 @@
     module mod_nasa_ode
     use mod_common
     implicit none
+    
+    interface
+        subroutine r4_deriv_scalar(t,y,yp)
+        import
+        real ( kind = 4 ), intent(in) :: t
+        real ( kind = 4 ), intent(in) :: y
+        real ( kind = 4 ), intent(out):: yp
+        end subroutine
+        subroutine r4_deriv_vector(t,n,y,yp)
+        import
+        real   ( kind = 4 ), intent(in) :: t
+        integer( kind = 4 ), intent(in) :: n
+        real   ( kind = 4 ), intent(in) :: y(n)
+        real   ( kind = 4 ), intent(out):: yp(n)
+        end subroutine
+        subroutine r8_deriv_scalar(t,y,yp)
+        import
+        real ( kind = 8 ), intent(in) :: t
+        real ( kind = 8 ), intent(in) :: y
+        real ( kind = 8 ), intent(out):: yp
+        end subroutine
+        subroutine r8_deriv_vector(t,n,y,yp)
+        import
+        real   ( kind = 8 ), intent(in) :: t
+        integer( kind = 4 ), intent(in) :: n
+        real   ( kind = 8 ), intent(in) :: y(n)
+        real   ( kind = 8 ), intent(out):: yp(n)
+        end subroutine
+    end interface
 
     contains
     
@@ -67,7 +96,8 @@
     implicit none
 
     real ( kind = 8 ) dt
-    external f
+    !external f
+    procedure(r8_deriv_scalar), pointer, intent(in) :: f
     real ( kind = 8 ) f0
     real ( kind = 8 ) f1
     real ( kind = 8 ) f2
@@ -151,7 +181,8 @@
     integer ( kind = 4 ) m
 
     real ( kind = 8 ) dt
-    external f
+    !external f
+    procedure(r8_deriv_vector), pointer, intent(in) :: f
     real ( kind = 8 ) f0(m)
     real ( kind = 8 ) f1(m)
     real ( kind = 8 ) f2(m)
@@ -273,7 +304,8 @@
     integer ( kind = 4 ) neqn
 
     real ( kind = 4 ) ch
-    external f
+    !external f
+    procedure(r4_deriv_vector), pointer, intent(in) :: f
     real ( kind = 4 ) f1(neqn)
     real ( kind = 4 ) f2(neqn)
     real ( kind = 4 ) f3(neqn)
@@ -289,13 +321,13 @@
 
     f5(1:neqn) = y(1:neqn) + ch * yp(1:neqn)
 
-    call f ( t + ch, f5, f1 )
+    call f ( t + ch, neqn, f5, f1 )
 
     ch = 3.0E+00 * h / 32.0E+00
 
     f5(1:neqn) = y(1:neqn) + ch * ( yp(1:neqn) + 3.0E+00 * f1(1:neqn) )
 
-    call f ( t + 3.0E+00 * h / 8.0E+00, f5, f2 )
+    call f ( t + 3.0E+00 * h / 8.0E+00, neqn, f5, f2 )
 
     ch = h / 2197.0E+00
 
@@ -304,7 +336,7 @@
         + ( 7296.0E+00 * f2(1:neqn) - 7200.0E+00 * f1(1:neqn) ) &
         )
 
-    call f ( t + 12.0E+00 * h / 13.0E+00, f5, f3 )
+    call f ( t + 12.0E+00 * h / 13.0E+00, neqn, f5, f3 )
 
     ch = h / 4104.0E+00
 
@@ -314,7 +346,7 @@
         + ( 29440.0E+00 * f2(1:neqn) - 32832.0E+00 * f1(1:neqn) ) &
         )
 
-    call f ( t + h, f5, f4 )
+    call f ( t + h, neqn, f5, f4 )
 
     ch = h / 20520.0E+00
 
@@ -326,7 +358,7 @@
         + ( 41040.0E+00 * f1(1:neqn) - 28352.0E+00 * f2(1:neqn) ) &
         )
 
-    call f ( t + h / 2.0E+00, f1, f5 )
+    call f ( t + h / 2.0E+00, neqn, f1, f5 )
     !
     !  Ready to compute the approximate solution at T+H.
     !
@@ -517,7 +549,8 @@
     real ( kind = 4 ) eps
     real ( kind = 4 ) esttol
     real ( kind = 4 ) et
-    external f
+    !external f
+    procedure(r4_deriv_vector), pointer, intent(in) :: f
     real ( kind = 4 ) f1(neqn)
     real ( kind = 4 ) f2(neqn)
     real ( kind = 4 ) f3(neqn)
@@ -707,7 +740,7 @@
 
         init = 0
         kop = 0
-        call f ( t, y, yp )
+        call f ( t, neqn, y, yp )
         nfe = 1
 
         if ( t == tout ) then
@@ -766,7 +799,7 @@
     if ( abs ( dt ) <= 26.0E+00 * eps * abs ( t ) ) then
         t = tout
         y(1:neqn) = y(1:neqn) + dt * yp(1:neqn)
-        call f ( t, y, yp )
+        call f ( t, neqn, y, yp )
         nfe = nfe + 1
         flag = 2
         return
@@ -916,7 +949,7 @@
         !
         t = t + h
         y(1:neqn) = f1(1:neqn)
-        call f ( t, y, yp )
+        call f ( t, neqn, y, yp )
         nfe = nfe + 1
         !
         !  Choose the next stepsize.  The increase is limited to a factor of 5.
@@ -1036,7 +1069,8 @@
     integer ( kind = 4 ) neqn
 
     real ( kind = 8 ) ch
-    external f
+    !external f
+    procedure(r8_deriv_vector), pointer, intent(in) :: f
     real ( kind = 8 ) f1(neqn)
     real ( kind = 8 ) f2(neqn)
     real ( kind = 8 ) f3(neqn)
@@ -1052,13 +1086,13 @@
 
     f5(1:neqn) = y(1:neqn) + ch * yp(1:neqn)
 
-    call f ( t + ch, f5, f1 )
+    call f ( t + ch, neqn, f5, f1 )
 
     ch = 3.0D+00 * h / 32.0D+00
 
     f5(1:neqn) = y(1:neqn) + ch * ( yp(1:neqn) + 3.0D+00 * f1(1:neqn) )
 
-    call f ( t + 3.0D+00 * h / 8.0D+00, f5, f2 )
+    call f ( t + 3.0D+00 * h / 8.0D+00, neqn, f5, f2 )
 
     ch = h / 2197.0D+00
 
@@ -1067,7 +1101,7 @@
         + ( 7296.0D+00 * f2(1:neqn) - 7200.0D+00 * f1(1:neqn) ) &
         )
 
-    call f ( t + 12.0D+00 * h / 13.0D+00, f5, f3 )
+    call f ( t + 12.0D+00 * h / 13.0D+00, neqn, f5, f3 )
 
     ch = h / 4104.0D+00
 
@@ -1077,7 +1111,7 @@
         + ( 29440.0D+00 * f2(1:neqn) - 32832.0D+00 * f1(1:neqn) ) &
         )
 
-    call f ( t + h, f5, f4 )
+    call f ( t + h, neqn, f5, f4 )
 
     ch = h / 20520.0D+00
 
@@ -1089,7 +1123,7 @@
         + ( 41040.0D+00 * f1(1:neqn) - 28352.0D+00 * f2(1:neqn) ) &
         )
 
-    call f ( t + h / 2.0D+00, f1, f5 )
+    call f ( t + h / 2.0D+00, neqn, f1, f5 )
     !
     !  Ready to compute the approximate solution at T+H.
     !
@@ -1280,7 +1314,8 @@
     real ( kind = 8 ) eps
     real ( kind = 8 ) esttol
     real ( kind = 8 ) et
-    external f
+    !external f
+    procedure(r8_deriv_vector), pointer, intent(in) :: f
     real ( kind = 8 ) f1(neqn)
     real ( kind = 8 ) f2(neqn)
     real ( kind = 8 ) f3(neqn)
@@ -1470,7 +1505,7 @@
 
         init = 0
         kop = 0
-        call f ( t, y, yp )
+        call f ( t, neqn, y, yp )
         nfe = 1
 
         if ( t == tout ) then
@@ -1531,7 +1566,7 @@
     if ( abs ( dt ) <= 26.0D+00 * eps * abs ( t ) ) then
         t = tout
         y(1:neqn) = y(1:neqn) + dt * yp(1:neqn)
-        call f ( t, y, yp )
+        call f ( t, neqn, y, yp )
         nfe = nfe + 1
         flag = 2
         return
@@ -1681,7 +1716,7 @@
         !
         t = t + h
         y(1:neqn) = f1(1:neqn)
-        call f ( t, y, yp )
+        call f ( t, neqn, y, yp )
         nfe = nfe + 1
         !
         !  Choose the next stepsize.  The increase is limited to a factor of 5.
@@ -1799,7 +1834,7 @@
     t_out = 0.0E+00
     t = t_out
     y(1) = 1.0E+00
-    call r4_f1 ( t, y, yp )
+    call r4_f1 ( t, neqn, y, yp )
 
     write ( *, '(a)' ) ' '
     write ( *, '(a)' ) '  FLAG     T             Y            Y''           Y_Exact         Error'
@@ -1887,7 +1922,7 @@
 
     y(1) = 1.0E+00
     y(2) = 0.0E+00
-    call r4_f2 ( t, y, yp )
+    call r4_f2 ( t, 2, y, yp )
 
     write ( *, '(a)' ) ' '
     write ( *, '(a)' ) '  FLAG       T          Y(1)          Y(2)'
@@ -1968,7 +2003,7 @@
     t = 0.0E+00
     t_out = 0.0E+00
     y(1) = 1.0E+00
-    call r4_f1 ( t, y, yp )
+    call r4_f1 ( t, neqn, y, yp )
 
     write ( *, '(a)' ) ' '
     write ( *, '(a)' ) '  FLAG     T             Y           Y''         Y_Exact        Error'
@@ -2060,7 +2095,7 @@
     t_out = 0.0D+00
     t = t_out
     y(1) = 1.0D+00
-    call r8_f1 ( t, y, yp )
+    call r8_f1 ( t, neqn, y, yp )
 
     write ( *, '(a)' ) ' '
     write ( *, '(a)' ) '  FLAG     T             Y            Y''           Y_Exact         Error'
@@ -2143,7 +2178,7 @@
 
     y(1) = 1.0D+00
     y(2) = 0.0D+00
-    call r8_f2 ( t, y, yp )
+    call r8_f2 ( t, neqn, y, yp )
 
     write ( *, '(a)' ) ' '
     write ( *, '(a)' ) '  FLAG       T          Y(1)          Y(2)'
@@ -2224,7 +2259,7 @@
     t = 0.0D+00
     t_out = 0.0D+00
     y(1) = 1.0D+00
-    call r8_f1 ( t, y, yp )
+    call r8_f1 ( t, neqn, y, yp )
 
     write ( *, '(a)' ) ' '
     write ( *, '(a)' ) '  FLAG     T             Y           Y''       Y_Exact        Error'
@@ -2263,7 +2298,7 @@
 
     return
     end
-    subroutine r4_f1 ( t, y, yp )
+    subroutine r4_f1 ( t, n, y, yp )
 
     !*****************************************************************************80
     !
@@ -2292,9 +2327,10 @@
     !
     implicit none
 
-    real ( kind = 4 ) t
-    real ( kind = 4 ) y(1)
-    real ( kind = 4 ) yp(1)
+    real ( kind = 4 ), intent(in) :: t
+    integer (kind = 4), intent(in) :: n
+    real ( kind = 4 ), intent(in) :: y(n)
+    real ( kind = 4 ), intent(out) :: yp(n)
 
     yp(1) = 0.25E+00 * y(1) * ( 1.0E+00 - y(1) / 20.0E+00 )
 
@@ -2334,7 +2370,7 @@
 
     return
     end
-    subroutine r4_f2 ( t, y, yp )
+    subroutine r4_f2 ( t, n, y, yp )
 
     !*****************************************************************************80
     !
@@ -2363,16 +2399,17 @@
     !
     implicit none
 
-    real ( kind = 4 ) t
-    real ( kind = 4 ) y(2)
-    real ( kind = 4 ) yp(2)
+    real ( kind = 4 ), intent(in) :: t
+    integer ( kind = 4), intent(in) :: n
+    real ( kind = 4 ), intent(in) :: y(n)
+    real ( kind = 4 ), intent(out) :: yp(n)
 
     yp(1) =  y(2)
     yp(2) = -y(1)
 
     return
     end
-    subroutine r8_f1 ( t, y, yp )
+    subroutine r8_f1 ( t, n, y, yp )
 
     !*****************************************************************************80
     !
@@ -2401,9 +2438,10 @@
     !
     implicit none
 
-    real ( kind = 8 ) t
-    real ( kind = 8 ) y(1)
-    real ( kind = 8 ) yp(1)
+    real ( kind = 8 ), intent(in) :: t
+    integer ( kind = 4), intent(in) :: n
+    real ( kind = 8 ), intent(in) :: y(n)
+    real ( kind = 8 ), intent(out) :: yp(n)
 
     yp(1) = 0.25D+00 * y(1) * ( 1.0D+00 - y(1) / 20.0D+00 )
 
@@ -2436,14 +2474,14 @@
     !
     implicit none
 
-    real ( kind = 8 ) t
-    real ( kind = 8 ) r8_y1x
+    real ( kind = 8 ), intent(in) :: t
+    real ( kind = 8 ) :: r8_y1x
 
     r8_y1x = 20.0D+00 / ( 1.0D+00 + 19.0D+00 * exp ( - 0.25D+00 * t ) )
 
     return
     end
-    subroutine r8_f2 ( t, y, yp )
+    subroutine r8_f2 ( t, n, y, yp )
 
     !*****************************************************************************80
     !
@@ -2472,9 +2510,10 @@
     !
     implicit none
 
-    real ( kind = 8 ) t
-    real ( kind = 8 ) y(2)
-    real ( kind = 8 ) yp(2)
+    real ( kind = 8 ), intent(in) :: t
+    integer( kind = 4), intent(in) :: n
+    real ( kind = 8 ), intent(in) :: y(n)
+    real ( kind = 8 ), intent(out) :: yp(n)
 
     yp(1) =  y(2)
     yp(2) = -y(1)

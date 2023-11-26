@@ -7,9 +7,11 @@ implicit none
     
     !call test_mod_show()
     !call test_mod_vectors()
-    call test_array_inv()
+    !call test_array_inv()
     !call test_nasa_ode()
     !call test_nasa_quat()
+    
+    call test_rb()
     
     contains
     
@@ -129,6 +131,11 @@ implicit none
     subroutine test_nasa_quat()
     use mod_nasa_quat
     call quat_array_test()
+    end subroutine
+    
+    subroutine test_rb()
+    use mod_rigid_bodies
+    call test_rb_sim()
     end subroutine
     
     
