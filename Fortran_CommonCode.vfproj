@@ -69,6 +69,7 @@
 		<File RelativePath=".\NumericalMethods\mod_splines.f90"/>
 		<File RelativePath=".\NumericalMethods\mod_triband_matrix.f90"/></Filter>
 		<Filter Name="Physics">
+		<File RelativePath=".\mod_contact.f90"/>
 		<File RelativePath=".\Physics\mod_native_vectors.f90"/>
 		<File RelativePath=".\Physics\mod_spatial_vectors.f90"/></Filter>
 		<File RelativePath=".\mod_common.f90"/>

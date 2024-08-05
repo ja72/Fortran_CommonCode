@@ -4,6 +4,16 @@ implicit none
 
     integer, parameter :: wp = real64
     
+    type, public :: t_matrix(rows, cols, knd)
+       integer, len :: rows, cols
+       integer, kind :: knd = real64
+       real(kind=knd), dimension(rows, cols) :: data
+    contains
+        procedure :: solve=> t_mat_solve
+        procedure :: inv=> t_mat_invert
+    end type    
+    
+    
     interface det
         module procedure :: mat_det
     end interface
@@ -193,7 +203,7 @@ implicit none
     implicit real(wp) (T)
     real(wp) :: d
     real(wp), intent(in) :: A(4,4)
-    real(wp) :: t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15
+    real(wp) :: t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13
     real(wp) :: t16, t17, t18, t19, t20, t21, t22, t23, t24, t25, t26, t27
       t2 = A(1,1)*A(2,2)*A(3,3)*A(4,4)
       t3 = A(1,1)*A(2,3)*A(3,4)*A(4,2)
@@ -281,7 +291,7 @@ implicit none
         end do    
     end function
     
-    function lu_mat_invert(A) result(A_inv)
+    pure function lu_mat_invert(A) result(A_inv)
     use mod_lu
     real(wp), allocatable :: A_inv(:,:)
     real(wp), intent(in) :: A(:,:)
@@ -320,7 +330,7 @@ implicit none
         
     end function
     
-    function lu_mat_solve_vec(A, b) result(x)
+    pure function lu_mat_solve_vec(A, b) result(x)
     use mod_lu
     real(wp), allocatable :: x(:)
     real(wp), intent(in) :: A(:,:), b(:)
@@ -328,7 +338,7 @@ implicit none
     real(wp), allocatable :: temp(:), LU(:,:)
     integer, allocatable :: indx(:)
     real(wp) :: d
-    integer :: i, rc, n, m
+    integer :: rc, n, m
     
         n = size(A,1)
         m = size(A,2)
@@ -400,5 +410,17 @@ implicit none
         end if
     end function
     
+    pure function t_mat_solve(obj, b) result(x)
+    class(t_matrix(*,*)), intent(in) :: obj
+    real(kind=obj%knd), intent(in) :: b(:)
+    real(kind=obj%knd), allocatable :: x(:)
+        x = lu_mat_solve_vec(obj%data, b)
+    end function
+    
+    pure function t_mat_invert(obj) result(A)
+    class(t_matrix(*,*)), intent(in) :: obj
+    real(kind=obj%knd), allocatable :: A(:,:)
+        A = lu_mat_invert(obj%data)
+    end function
     
 end module
