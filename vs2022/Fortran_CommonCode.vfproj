@@ -55,26 +55,26 @@
 		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
 		<Filter Name="CAD">
-		<File RelativePath=".\CAD\mod_obj_files.f90"/></Filter>
+		<File RelativePath="..\CAD\mod_obj_files.f90"/></Filter>
 		<Filter Name="NASA">
-		<File RelativePath=".\NASA\mod_nasa_ode.f90"/>
-		<File RelativePath=".\NASA\mod_nasa_quat.f90"/></Filter>
+		<File RelativePath="..\NASA\mod_nasa_ode.f90"/>
+		<File RelativePath="..\NASA\mod_nasa_quat.f90"/></Filter>
 		<Filter Name="Numerics">
-		<File RelativePath=".\NumericalMethods\mod_array_inv.f90"/>
-		<File RelativePath=".\NumericalMethods\mod_lu.f90"/>
-		<File RelativePath=".\NumericalMethods\mod_odex2.f90"/>
-		<File RelativePath=".\NumericalMethods\mod_polynomial.f90"/>
-		<File RelativePath=".\NumericalMethods\mod_polynomial_cubic.f90"/>
-		<File RelativePath=".\NumericalMethods\mod_runge_kutta.f90"/>
-		<File RelativePath=".\NumericalMethods\mod_splines.f90"/>
-		<File RelativePath=".\NumericalMethods\mod_triband_matrix.f90"/></Filter>
+		<File RelativePath="..\NumericalMethods\mod_array_inv.f90"/>
+		<File RelativePath="..\NumericalMethods\mod_lu.f90"/>
+		<File RelativePath="..\NumericalMethods\mod_odex2.f90"/>
+		<File RelativePath="..\NumericalMethods\mod_polynomial.f90"/>
+		<File RelativePath="..\NumericalMethods\mod_polynomial_cubic.f90"/>
+		<File RelativePath="..\NumericalMethods\mod_runge_kutta.f90"/>
+		<File RelativePath="..\NumericalMethods\mod_splines.f90"/>
+		<File RelativePath="..\NumericalMethods\mod_triband_matrix.f90"/></Filter>
 		<Filter Name="Physics">
-		<File RelativePath=".\mod_contact.f90"/>
-		<File RelativePath=".\Physics\mod_native_vectors.f90"/>
-		<File RelativePath=".\Physics\mod_spatial_vectors.f90"/></Filter>
-		<File RelativePath=".\mod_common.f90"/>
-		<File RelativePath=".\mod_show_matrix.f90"/>
-		<File RelativePath=".\program.f90"/></Filter>
+		<File RelativePath="..\mod_contact.f90"/>
+		<File RelativePath="..\Physics\mod_native_vectors.f90"/>
+		<File RelativePath="..\Physics\mod_spatial_vectors.f90"/></Filter>
+		<File RelativePath="..\mod_common.f90"/>
+		<File RelativePath="..\mod_show_matrix.f90"/>
+		<File RelativePath="..\program.f90"/></Filter>
 	</Files>
 	<Globals/>
 </VisualStudioProject>
