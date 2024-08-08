@@ -1,5 +1,6 @@
 module mod_array_inv
 use mod_common
+use mod_show_matrix
 implicit none
 
     integer, parameter :: wp = real64
@@ -422,5 +423,42 @@ implicit none
     real(kind=obj%knd), allocatable :: A(:,:)
         A = lu_mat_invert(obj%data)
     end function
+    
+    subroutine test_array_inv()    
+    real(wp), allocatable :: A(:,:), b(:), x(:), A_inv(:,:)
+    real(wp) :: d
+    integer n
+    
+    do n=1, 4
+        allocate(A(n,n))
+        allocate(b(n))
+        call RANDOM_NUMBER(A)
+        call RANDOM_NUMBER(b)
+        b = -1 + 2._wp*b
+        
+        print *,"Size = ", n
+        
+        print *, "A="
+        call show(A)
+                
+        d = det(A)
+        print *, "det(A) = ", d
+        
+        A_inv = inv(A)
+        print *, "inv(A)="
+        call show(A_inv)
+        
+        print *, "b="
+        x = solve(A,b)
+        print *, "x="
+        call show(x)
+        print *, "max(error)=", maxval(abs(b - matmul(A,x)))
+        
+        deallocate(A)
+        deallocate(b)
+    end do
+    
+    end subroutine
+    
     
 end module

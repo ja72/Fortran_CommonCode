@@ -93,16 +93,17 @@
         end select    
     end function
     
-    function vector_sumsq(a) result(m)
+    function vector_sumsq(a) result(m2)
     real(wp), intent(in) :: a(3)
-    real(wp) :: m
-        m = a(1)**2+a(2)**2+a(3)**2
+    real(wp) :: m2
+        m2 = a(1)**2+a(2)**2+a(3)**2        
     end function
     
     function vector_norm(a) result(m)
     real(wp), intent(in) :: a(3)
-    real(wp) :: m
-        m = sqrt( a(1)**2+a(2)**2+a(3)**2 )
+    real(wp) :: m, m2
+        m2 = vector_sumsq(a)
+        m = sqrt( m2 )
     end function
     
     function vector_unit(a) result(b)

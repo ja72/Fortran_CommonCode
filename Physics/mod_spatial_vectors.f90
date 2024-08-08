@@ -1,5 +1,6 @@
     module mod_spatial_vectors
     use mod_array_inv
+    use mod_show_matrix
     implicit none
     
     !integer, parameter :: wp = real64
@@ -1044,6 +1045,25 @@
     end if
     end subroutine 
     
+    subroutine test_vectors()
+    integer :: n
+    type(matrix) :: A
+    type(vector) :: c, x, e
+    n = 12
+    
+    A = 5._wp * ident(n) + rand(n,n)
+    print *, "A="
+    call show(A%data)
+    c = rand(n, -1._wp, 1._wp)
+    print *, "c="
+    call show(c%data)
+    x = solve(A,c)
+    print *, "x="
+    call show(x%data)
+    e = c - A*x
+    print *, "e="
+    call show(e%data)
+    end subroutine
 
     end module
     
