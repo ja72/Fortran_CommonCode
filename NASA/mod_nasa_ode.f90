@@ -1811,29 +1811,6 @@
     return
     end
 
-    subroutine srk4_test()
-    !call timestamp ( )
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) 'RKF45_TEST'
-    write ( *, '(a)' ) '  FORTRAN90 version'
-    write ( *, '(a)' ) '  Test the RKF45 library.'
-
-    call test01 ( )
-    call test02 ( )
-    call test03 ( )
-    call test04 ( )
-    call test05 ( )
-    call test06 ( )
-    !
-    !  Terminate.
-    !
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) 'RKF45_TEST'
-    write ( *, '(a)' ) '  Normal end of execution.'
-    write ( *, '(a)' ) ' '
-    !call timestamp ( )
-
-    contains
 
     subroutine test01 ( )
 
@@ -2580,9 +2557,28 @@
 
     return
     end
+    
+    subroutine test_srk4_all()
+    write ( *, '(a)' ) ' '
+    write ( *, '(a)' ) 'RKF45_TEST'
+    write ( *, '(a)' ) '  FORTRAN90 version'
+    write ( *, '(a)' ) '  Test the RKF45 library.'
 
-
+    call test01 ( )
+    call test02 ( )
+    call test03 ( )
+    call test04 ( )
+    call test05 ( )
+    call test06 ( )
+    !
+    !  Terminate.
+    !
+    write ( *, '(a)' ) ' '
+    write ( *, '(a)' ) 'RKF45_TEST'
+    write ( *, '(a)' ) '  Normal end of execution.'
+    write ( *, '(a)' ) ' '
     end subroutine
+
 
 
     end module

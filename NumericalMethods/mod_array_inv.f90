@@ -28,14 +28,14 @@ implicit none
     contains
     
     pure function vec_inner(a,b) result(ab)
-    real(wp), intent(in) :: a(:), b(:)
-    real(wp) :: ab
+    real(real64), intent(in) :: a(:), b(:)
+    real(real64) :: ab
         ab = dot_product(a,b)
     end function
     
     pure function vec_outer(a,b) result(ab)
-    real(wp), intent(in) :: a(:), b(:)
-    real(wp), allocatable :: ab(:,:)
+    real(real64), intent(in) :: a(:), b(:)
+    real(real64), allocatable :: ab(:,:)
     integer :: n,m,i,j
         n = size(a)
         m = size(b)
@@ -46,8 +46,8 @@ implicit none
     end function
         
     function mat_det(A) result(d)
-    real(wp), intent(in) :: A(:,:)
-    real(wp) :: d
+    real(real64), intent(in) :: A(:,:)
+    real(real64) :: d
     integer :: n, m
     
         n = size(A, 1)
@@ -72,8 +72,8 @@ implicit none
     end function
     
     function mat_inv(A) result(B)
-    real(wp), intent(in) :: A(:,:)    
-    real(wp) :: B(size(A,1),size(A,2))
+    real(real64), intent(in) :: A(:,:)    
+    real(real64) :: B(size(A,1),size(A,2))
     integer :: n, m
     
         n = size(A, 1)
@@ -98,8 +98,8 @@ implicit none
     end function
     
     function mat_solve_vec(A, b) result(x)
-    real(wp), intent(in) :: A(:,:), b(:)
-    real(wp), allocatable :: x(:)
+    real(real64), intent(in) :: A(:,:), b(:)
+    real(real64), allocatable :: x(:)
     integer :: n,m
     
         n = size(A, 1)
@@ -124,26 +124,25 @@ implicit none
     end function
     
     function mat_solve_mat(A, B) result(X)
-    real(wp), intent(in) :: A(:,:), B(:,:)
-    real(wp), allocatable :: X(:,:)
-    real(wp), allocatable :: A_inv(:,:)
+    real(real64), intent(in) :: A(:,:), B(:,:)
+    real(real64), allocatable :: X(:,:)
+    real(real64), allocatable :: A_inv(:,:)
         A_inv = mat_inv(A)
         X = matmul(A_inv, B)
     end function
     
     pure function mat2_det(A) result(d)
-    implicit real(wp) (T)
-    real(wp) :: d
-    real(wp), intent(in) :: A(2,2)
-    real(wp) :: t2, t5
+    real(real64) :: d    
+    real(real64), intent(in) :: A(2,2)
+    real(real64) :: t2, t5
         t2 = A(1,1)*A(2,2)
         t5 = A(1,2)*A(2,1)
         d = t2-t5
     end function
     
     pure function mat2_inv(A) result(B)
-    real(wp) :: B(2,2), d_inv
-    real(wp), intent(in) :: A(2,2)        
+    real(real64) :: B(2,2), d_inv
+    real(real64), intent(in) :: A(2,2)        
         d_inv = 1/mat2_det(A)
         B(1,1) = A(2,2)*d_inv
         B(1,2) = -A(1,2)*d_inv
@@ -152,18 +151,17 @@ implicit none
     end function
     
     pure function mat2_solve_vec(A,b) result(x)
-    real(wp) :: x(2), d_inv
-    real(wp), intent(in) :: A(2,2), b(2)
+    real(real64) :: x(2), d_inv
+    real(real64), intent(in) :: A(2,2), b(2)
         d_inv = 1/mat2_det(A)
         x(1) = d_inv*(A(2,2)*b(1) - A(1,2)*b(2))
         x(2) = d_inv*(A(1,1)*b(2) - A(2,1)*b(1))    
     end function
     
     pure function mat3_det(A) result(d)
-    implicit real(wp) (T)
-    real(wp) :: d
-    real(wp), intent(in) :: A(3,3)
-    real(wp) :: t2, t3, t4, t7, t8, t9
+    real(real64) :: d
+    real(real64), intent(in) :: A(3,3)
+    real(real64) :: t2, t3, t4, t7, t8, t9
         t2 = A(1,1)*A(2,2)*A(3,3)
         t3 = A(1,2)*A(2,3)*A(3,1)
         t4 = A(1,3)*A(2,1)*A(3,2)
@@ -174,8 +172,8 @@ implicit none
     end function
     
     pure function mat3_inv(A) result(B)
-    real(wp) :: B(3,3), d_inv
-    real(wp), intent(in) :: A(3,3)
+    real(real64) :: B(3,3), d_inv
+    real(real64), intent(in) :: A(3,3)
     
         d_inv = 1/mat3_det(A)
         B(1,1) = d_inv*(A(2,2)*A(3,3)-A(2,3)*A(3,2))
@@ -191,8 +189,8 @@ implicit none
     end function
     
     pure function mat3_solve_vec(A,b) result(x)
-    real(wp) :: x(3), d_inv
-    real(wp), intent(in) :: A(3,3), b(3)
+    real(real64) :: x(3), d_inv
+    real(real64), intent(in) :: A(3,3), b(3)
         d_inv = 1/mat3_det(A)
         
         x(1) = d_inv*(A(1,2)*(A(2,3)*b(3)-A(3,3)*b(2))+A(1,3)*(A(3,2)*b(2)-A(2,2)*b(3))+b(1)*(A(2,2)*A(3,3)-A(2,3)*A(3,2)))
@@ -201,11 +199,11 @@ implicit none
     end function
     
     pure function mat4_det(A) result(d)
-    implicit real(wp) (T)
-    real(wp) :: d
-    real(wp), intent(in) :: A(4,4)
-    real(wp) :: t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13
-    real(wp) :: t16, t17, t18, t19, t20, t21, t22, t23, t24, t25, t26, t27
+    implicit real(real64) (T)
+    real(real64) :: d
+    real(real64), intent(in) :: A(4,4)
+    real(real64) :: t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13
+    real(real64) :: t16, t17, t18, t19, t20, t21, t22, t23, t24, t25, t26, t27
       t2 = A(1,1)*A(2,2)*A(3,3)*A(4,4)
       t3 = A(1,1)*A(2,3)*A(3,4)*A(4,2)
       t4 = A(1,1)*A(2,4)*A(3,2)*A(4,3)
@@ -235,8 +233,8 @@ implicit none
     
     
     pure function mat4_inv(A) result(B)
-    real(wp) :: B(4,4), d_inv
-    real(wp), intent(in) :: A(4,4)
+    real(real64) :: B(4,4), d_inv
+    real(real64), intent(in) :: A(4,4)
     
       d_inv = 1/mat4_det(A)
       B(1,1) = d_inv*(A(2,2)*A(3,3)*A(4,4)-A(2,2)*A(3,4)*A(4,3)-A(2,3)*A(3,2)*A(4,4)+A(2,3)*A(3,4)*A(4,2)+A(2,4)*A(3,2)*A(4,3)-A(2,4)*A(3,3)*A(4,2))
@@ -259,17 +257,17 @@ implicit none
     end function
 
     pure function mat4_solve_vec(A,b) result(x)
-    real(wp) :: x(4)
-    real(wp), intent(in) :: A(4,4), b(4)
+    real(real64) :: x(4)
+    real(real64), intent(in) :: A(4,4), b(4)
         x = matmul(mat4_inv(A), b)
     end function
     
     function lu_mat_det(A) result(d)
     use mod_lu
-    real(wp) :: d
-    real(wp), intent(in) :: A(:,:)
+    real(real64) :: d
+    real(real64), intent(in) :: A(:,:)
     logical :: ok
-    real(wp), allocatable :: temp(:), LU(:,:)
+    real(real64), allocatable :: temp(:), LU(:,:)
     integer, allocatable :: indx(:)
 
     integer :: i, rc, n, m
@@ -294,12 +292,12 @@ implicit none
     
     pure function lu_mat_invert(A) result(A_inv)
     use mod_lu
-    real(wp), allocatable :: A_inv(:,:)
-    real(wp), intent(in) :: A(:,:)
+    real(real64), allocatable :: A_inv(:,:)
+    real(real64), intent(in) :: A(:,:)
     logical :: ok
-    real(wp), allocatable :: temp(:), LU(:,:)
+    real(real64), allocatable :: temp(:), LU(:,:)
     integer, allocatable :: indx(:)
-    real(wp) :: d
+    real(real64) :: d
     integer :: i, j, rc, n, m
     
         n = size(A,1)
@@ -333,12 +331,12 @@ implicit none
     
     pure function lu_mat_solve_vec(A, b) result(x)
     use mod_lu
-    real(wp), allocatable :: x(:)
-    real(wp), intent(in) :: A(:,:), b(:)
+    real(real64), allocatable :: x(:)
+    real(real64), intent(in) :: A(:,:), b(:)
     logical :: ok
-    real(wp), allocatable :: temp(:), LU(:,:)
+    real(real64), allocatable :: temp(:), LU(:,:)
     integer, allocatable :: indx(:)
-    real(wp) :: d
+    real(real64) :: d
     integer :: rc, n, m
     
         n = size(A,1)
@@ -365,10 +363,10 @@ implicit none
     end function
     
     pure recursive function mat_inv_reduce(M) result(W)
-    real(wp), intent(in) :: M(:,:)
-    real(wp), allocatable :: W(:,:)
-    real(wp), allocatable :: A(:,:), b(:), c(:), d
-    real(wp), allocatable :: A_inv(:,:), A_bc(:,:)
+    real(real64), intent(in) :: M(:,:)
+    real(real64), allocatable :: W(:,:)
+    real(real64), allocatable :: A(:,:), b(:), c(:), d
+    real(real64), allocatable :: A_inv(:,:), A_bc(:,:)
     integer :: n
         n = size(M,1)
         allocate(W(n,n))
@@ -389,10 +387,10 @@ implicit none
     end function
     
     pure recursive function mat_solve_vec_reduce(M,z) result(w)
-    real(wp), intent(in) :: M(:,:), z(:)
-    real(wp), allocatable :: w(:)
-    real(wp), allocatable :: A(:,:), b(:), c(:), d, u(:), v
-    real(wp), allocatable :: A_bc(:,:)
+    real(real64), intent(in) :: M(:,:), z(:)
+    real(real64), allocatable :: w(:)
+    real(real64), allocatable :: A(:,:), b(:), c(:), d, u(:), v
+    real(real64), allocatable :: A_bc(:,:)
     integer :: n
         n = size(M,1)
         allocate(w(n))
@@ -425,8 +423,8 @@ implicit none
     end function
     
     subroutine test_array_inv()    
-    real(wp), allocatable :: A(:,:), b(:), x(:), A_inv(:,:)
-    real(wp) :: d
+    real(real64), allocatable :: A(:,:), b(:), x(:), A_inv(:,:)
+    real(real64) :: d
     integer n
     
     do n=1, 4

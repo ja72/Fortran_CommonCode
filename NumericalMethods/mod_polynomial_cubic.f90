@@ -7,11 +7,11 @@ implicit none
     contains
     
     function solve_cubic(Q_0,Q_1,Q_2,Q_3) result(T)
-    implicit real(wp) (T)
-    reaL(wp), intent(in) :: Q_0, Q_1, Q_2, Q_3
-    reaL(wp) :: T(3)
-    reaL(wp) :: t25, t26, t27, t28, t29, t30, t31, t32, t33, t34, t35, t37, t38, t39
-    reaL(wp) :: t36, t40, t41, t42, t43, t44, t45, t46
+    implicit real(real64) (T)
+    real(real64), intent(in) :: Q_0, Q_1, Q_2, Q_3
+    real(real64) :: T(3)
+    real(real64) :: t25, t26, t27, t28, t29, t30, t31, t32, t33, t34, t35, t37, t38, t39
+    real(real64) :: t36, t40, t41, t42, t43, t44, t45, t46
     
       t25 = 1.0D0/Q_3
       t26 = Q_2**2
