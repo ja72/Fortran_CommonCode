@@ -1,17 +1,17 @@
-program test
+program Fortran_Common
 use mod_common
 implicit none
 
     
     call RANDOM_SEED()
     
-    call test_mod_show()
-    call test_mod_spatial_vectors()
-    call test_mod_array_inv()
-    call test_mod_nasa()
-    call test_mod_rigid_bodies()
+    !call test_mod_show()
+    !call test_mod_spatial_vectors()
+    !call test_mod_array_inv()
+    !call test_mod_nasa()
+    !call test_mod_rigid_bodies()
     call test_mod_linalg()
-    
+        
     contains
     
     subroutine test_mod_array_inv()
@@ -34,7 +34,7 @@ implicit none
     use mod_nasa_quat
     use mod_nasa_ode    
     call quat_array_test()
-    call srk4_test()    
+    call test_srk4_all()
     end subroutine    
     
     subroutine test_mod_rigid_bodies()
@@ -44,8 +44,11 @@ implicit none
     
     subroutine test_mod_linalg()
     use mod_linear_algebra
-        call test_linear_algebra()        
+    use mod_initial_value_problems
+    
+        !call test_linear_algebra()     
+        call test_mod_ivp()
     end subroutine
     
     
-end program
+end program Fortran_Common
