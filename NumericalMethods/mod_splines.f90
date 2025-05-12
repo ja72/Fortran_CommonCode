@@ -197,7 +197,7 @@
         
         ypp(n_count) = (u(n_count)-qn*u(n_count-1))/(qn*ypp(n_count-1)+1d0)
         do i=n_count-1, 1, -1
-            ypp(i) = ypp(i)*ypp(i+1)+u(i)
+            ypp(i) = ieee_fma(ypp(i), ypp(i+1), u(i))
         end do
         
         if( cs%start_condition == set_ypp ) then

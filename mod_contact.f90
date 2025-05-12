@@ -24,7 +24,7 @@
     real(real64),intent(in) :: lx,ly
     integer, intent(in) :: nx,ny
     type(t_contact) :: obj
-    real(real64) :: area, dx, dy
+    real(real64) :: area, dx, dy, inv_area
     
         obj%dx = lx
         obj%dy = ly
@@ -33,10 +33,11 @@
         dx = lx/nx
         dy = ly/ny
         area = dx*dy
-        obj%CP(:,1) = [ area, -dx, -dy, 1.0d0]/area
-        obj%CP(:,2) = [ 0.0d0, 0.0d0, dx, -1.0d0 ]/area
-        obj%CP(:,3) = [ 0.0d0, dy, 0.0d0, -1.0d0 ]/area
-        obj%CP(:,4) = [ 0.0d0, 0.0d0, 0.0d0, 1.0d0 ]/area
+        inv_area = 1/area
+        obj%CP(:,1) = [         1.0d0, -dx*inv_area     , -dy*inv_area      ,  inv_area     ]
+        obj%CP(:,2) = [         0.0d0,  0.0d0           ,  dx*inv_area      , -inv_area     ]
+        obj%CP(:,3) = [         0.0d0,  dy*inv_area     ,  0.0d0            , -inv_area     ]
+        obj%CP(:,4) = [         0.0d0,  0.0d0           ,  0.0d0            ,  inv_area     ]
         obj%k = 1.4d-6  ! default is steel on steel
         allocate(obj%P(nx*ny))
         allocate(obj%delta(nx*ny))

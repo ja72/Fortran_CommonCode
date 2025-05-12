@@ -11,14 +11,14 @@
         enumerator :: z_axis = 3
     end enum
     
-    real(wp), dimension(3), parameter :: o_ = [0._wp,0._wp,0._wp]
-    real(wp), dimension(3), parameter :: i_ = [1._wp,0._wp,0._wp]
-    real(wp), dimension(3), parameter :: j_ = [0._wp,1._wp,0._wp]
-    real(wp), dimension(3), parameter :: k_ = [0._wp,0._wp,1._wp]
-    real(wp), dimension(4), parameter :: q_eye = [1._wp, 0._wp, 0._wp, 0._wp]
+    real(real64), dimension(3), parameter :: o_ = [0._wp,0._wp,0._wp]
+    real(real64), dimension(3), parameter :: i_ = [1._wp,0._wp,0._wp]
+    real(real64), dimension(3), parameter :: j_ = [0._wp,1._wp,0._wp]
+    real(real64), dimension(3), parameter :: k_ = [0._wp,0._wp,1._wp]
+    real(real64), dimension(4), parameter :: q_eye = [1._wp, 0._wp, 0._wp, 0._wp]
     
-    real(wp), dimension(3,3), parameter :: zero_ = reshape( [0._wp,0._wp,0._wp, 0._wp,0._wp,0._wp, 0._wp,0._wp,0._wp], [3,3])
-    real(wp), dimension(3,3), parameter :: eye_ = reshape( [1._wp,0._wp,0._wp, 0._wp,1._wp,0._wp, 0._wp,0._wp,1._wp], [3,3])
+    real(real64), dimension(3,3), parameter :: zero_ = reshape( [0._wp,0._wp,0._wp, 0._wp,0._wp,0._wp, 0._wp,0._wp,0._wp], [3,3])
+    real(real64), dimension(3,3), parameter :: eye_ = reshape( [1._wp,0._wp,0._wp, 0._wp,1._wp,0._wp, 0._wp,0._wp,1._wp], [3,3])
 
     interface vector
         module procedure vector_from_axis
@@ -79,7 +79,7 @@
     
     function vector_from_axis(axis) result(v)
     integer, intent(in) :: axis
-    real(wp) :: v(3)
+    real(real64) :: v(3)
     
         select case (axis)
         case (x_axis)
@@ -93,21 +93,28 @@
         end select    
     end function
     
-    function vector_sumsq(a) result(m)
-    real(wp), intent(in) :: a(3)
-    real(wp) :: m
-        m = a(1)**2+a(2)**2+a(3)**2
+    function vector_sumsq(a) result(m2)
+    real(real64), intent(in) :: a(3)
+    real(real64) :: m2
+    
+        ! m2 = a(1)**2 + a(2)**2 + a(3)**2
+    
+        m2 = ieee_fma(a(1),a(1), 0.0D0)
+        m2 = ieee_fma(a(2),a(2), m2)
+        m2 = ieee_fma(a(3),a(3), m2)
+        
     end function
     
     function vector_norm(a) result(m)
-    real(wp), intent(in) :: a(3)
-    real(wp) :: m
-        m = sqrt( a(1)**2+a(2)**2+a(3)**2 )
+    real(real64), intent(in) :: a(3)
+    real(real64) :: m, m2
+        m2 = vector_sumsq(a)
+        m = sqrt( m2 )
     end function
     
     function vector_unit(a) result(b)
-    real(wp), intent(in) :: a(3)
-    real(wp) :: b(3), m
+    real(real64), intent(in) :: a(3)
+    real(real64) :: b(3), m
         m = norm(a)
         if( m>0 .and. m /= 1.0 ) then
             b = a/m
@@ -117,22 +124,22 @@
     end function
     
     function vector_project_vector(vector,axis) result(res)
-    real(wp),  intent(in) :: vector(3), axis(3)
-    real(wp) :: res(3), t
+    real(real64),  intent(in) :: vector(3), axis(3)
+    real(real64) :: res(3), t
          t = dot_product(axis,vector) / dot_product(axis,axis)
          res = axis * t         
     end function
     
     function vector_perpendicular_vector(vector,axis) result(res)
-    real(wp),  intent(in) :: vector(3), axis(3)
-    real(wp) :: res(3)
+    real(real64),  intent(in) :: vector(3), axis(3)
+    real(real64) :: res(3)
          res = vector - vector_project_vector(vector, axis)
     end function
     
     function vector_project_axis(vector,axis) result(res)
-    real(wp),  intent(in) :: vector(3)
+    real(real64),  intent(in) :: vector(3)
     integer, intent(in) :: axis
-    real(wp) :: res(3)
+    real(real64) :: res(3)
         select case(axis)
         case (x_axis)
             res = [ vector(1), 0._wp, 0._wp]
@@ -146,41 +153,52 @@
     end function
     
     function vector_perpendicular_axis(vector,axis) result(res)
-    real(wp),  intent(in) :: vector(3)
+    real(real64),  intent(in) :: vector(3)
     integer, intent(in) :: axis
-    real(wp) :: res(3)
+    real(real64) :: res(3)
         res = vector - vector_project_axis(vector, axis)
     end function
     
     pure function vector_dot_product(a,b) result(c)
-    real(wp), intent(in) :: a(:), b(:)
-    real(wp) :: c
+    real(real64), intent(in) :: a(:), b(:)
+    real(real64) :: c
         c = dot_product(a,b)
     end function
     
     pure function vector_outer_product(a,b) result(c)
-    real(wp), intent(in) :: a(:), b(:)
-    real(wp) :: c(size(a),size(b))
+    real(real64), intent(in) :: a(:), b(:)
+    real(real64) :: c(size(a),size(b))
         integer :: i,j,n,m
         n = size(a)
         m = size(b)
         forall(i=1:n, j=1:m)
-            c(i,j) = a(i)*b(j)
+            c(i,j) = ieee_fma( a(i), b(j), 0.0D0)
         end forall
     end function
     
     pure function vector_cross_product(a,b) result(c)
-    real(wp),  intent(in) :: a(3), b(3)
-    real(wp) ::  c(3)
+    real(real64),  intent(in) :: a(3), b(3)
+    real(real64) ::  c(3), cx, cy, cz
     
-        c = [ a(2)*b(3) - a(3)*b(2), &
-              a(3)*b(1) - a(1)*b(3), &
-              a(1)*b(2) - a(2)*b(1) ]
+        !c = [ a(2)*b(3) - a(3)*b(2), &
+        !      a(3)*b(1) - a(1)*b(3), &
+        !      a(1)*b(2) - a(2)*b(1) ]
+        
+        cx = ieee_fma( a(3), b(2), 0.0D0 )
+        cx = ieee_fma( a(2), b(3), -cx )
+        
+        cy = ieee_fma( a(1), b(3), 0.0D0 )
+        cy = ieee_fma( a(3), b(1), -cy )
+        
+        cz = ieee_fma( a(2), b(1), 0.0D0 )
+        cz = ieee_fma( a(1), b(2), -cz )
+        
+        c = [cx, cy, cz]
     end function
     
     pure function vector_cross_product_matrix(a) result(c)
-    real(wp),  intent(in) :: a(3)
-    real(wp) ::  c(3,3)
+    real(real64),  intent(in) :: a(3)
+    real(real64) ::  c(3,3)
     
         c = reshape( &
             [0._wp, a(3), -a(2), &
@@ -190,8 +208,8 @@
     end function
         
     function vector_mmoi_matrix(a) result(c)
-    real(wp),  intent(in) :: a(3)
-    real(wp) ::  c(3,3)
+    real(real64),  intent(in) :: a(3)
+    real(real64) ::  c(3,3)
     
         c = reshape( &
             [   a(2)**2+a(3)**2, -a(1)*a(2), -a(1)*a(3), &
@@ -201,8 +219,8 @@
     end function
     
     function vector_rotate_x(vector, angle) result(res)
-    real(wp),  intent(in) :: vector(3), angle
-    real(wp) ::  res(3), c, s
+    real(real64),  intent(in) :: vector(3), angle
+    real(real64) ::  res(3), c, s
         c = cos(angle)
         s = sin(angle)
         res = [ &
@@ -212,8 +230,8 @@
     end function
     
     function matrix_rotate_x(angle) result(res)
-    real(wp),  intent(in) :: angle
-    real(wp) ::  res(3,3), c, s
+    real(real64),  intent(in) :: angle
+    real(real64) ::  res(3,3), c, s
         c = cos(angle)
         s = sin(angle)
         res = reshape( &
@@ -223,8 +241,8 @@
     end function
     
     function vector_rotate_y(vector, angle) result(res)
-    real(wp),  intent(in) :: vector(3), angle
-    real(wp) ::  res(3), c, s
+    real(real64),  intent(in) :: vector(3), angle
+    real(real64) ::  res(3), c, s
         c = cos(angle)
         s = sin(angle)
         res = [ &
@@ -234,8 +252,8 @@
     end function
     
     function matrix_rotate_y(angle) result(res)
-    real(wp),  intent(in) :: angle
-    real(wp) ::  res(3,3), c, s
+    real(real64),  intent(in) :: angle
+    real(real64) ::  res(3,3), c, s
         c = cos(angle)
         s = sin(angle)
         res = reshape( &
@@ -245,8 +263,8 @@
     end function
     
     function vector_rotate_z(vector, angle) result(res)
-    real(wp),  intent(in) :: vector(3), angle
-    real(wp) ::  res(3), c, s
+    real(real64),  intent(in) :: vector(3), angle
+    real(real64) ::  res(3), c, s
         c = cos(angle)
         s = sin(angle)
         res = [ &
@@ -256,8 +274,8 @@
     end function
     
     function matrix_rotate_z(angle) result(res)
-    real(wp),  intent(in) :: angle
-    real(wp) ::  res(3,3), c, s
+    real(real64),  intent(in) :: angle
+    real(real64) ::  res(3,3), c, s
         c = cos(angle)
         s = sin(angle)
         res = reshape( &
@@ -268,8 +286,8 @@
     
     function vector_rotate_axis(vector, axis, angle) result(res)
     integer, intent(in) :: axis
-    real(wp),  intent(in) :: vector(3), angle
-    real(wp) ::  res(3)
+    real(real64),  intent(in) :: vector(3), angle
+    real(real64) ::  res(3)
         select case(axis)
         case (x_axis)
             res = vector_rotate_x(vector, angle)
@@ -284,8 +302,8 @@
     
     function matrix_rotate_axis(axis, angle) result(res)
     integer, intent(in) :: axis
-    real(wp),  intent(in) :: angle
-    real(wp) ::  res(3,3)
+    real(real64),  intent(in) :: angle
+    real(real64) ::  res(3,3)
         select case(axis)
         case (x_axis)
             res = matrix_rotate_x(angle)
@@ -299,8 +317,8 @@
     end function
     
     function vector_rotate_vector(vector, axis, angle) result(res)
-    real(wp),  intent(in) :: vector(3), axis(3), angle
-    real(wp) ::  a(3), res(3), axv(3), axaxv(3), c, s
+    real(real64),  intent(in) :: vector(3), axis(3), angle
+    real(real64) ::  a(3), res(3), axv(3), axaxv(3), c, s
         c = cos(angle)
         s = sin(angle)
         a = unit(axis)
@@ -310,8 +328,8 @@
     end function
     
     function matrix_rotate_vector(axis, angle) result(res)
-    real(wp),  intent(in) :: axis(3), angle
-    real(wp) ::  a(3), res(3,3), ax(3,3), axax(3,3),c,s
+    real(real64),  intent(in) :: axis(3), angle
+    real(real64) ::  a(3), res(3,3), ax(3,3), axax(3,3),c,s
         c = cos(angle)
         s = sin(angle)
         a = unit(axis)
@@ -322,8 +340,8 @@
     
     pure function quat_axis_angle(axis, angle) result(q)
     integer, intent(in) :: axis
-    real(wp),  intent(in) :: angle
-    real(wp) ::  q(4)
+    real(real64),  intent(in) :: angle
+    real(real64) ::  q(4)
         select case(axis)
         case(x_axis)
             q = quat_vector_angle(i_, angle)
@@ -337,8 +355,8 @@
     end function
     
     pure function quat_vector_angle(axis, angle) result(q)
-    real(wp),  intent(in) :: axis(3), angle
-    real(wp) ::  q(4), c, s, m
+    real(real64),  intent(in) :: axis(3), angle
+    real(real64) ::  q(4), c, s, m
         c = cos(angle/2)
         s = sin(angle/2)    
         m = norm2(axis)
@@ -346,53 +364,57 @@
     end function
 
     pure function quat_from_vector(vector) result(q)
-    real(wp),  intent(in) :: vector(3)
-    real(wp) ::  q(4)
+    real(real64),  intent(in) :: vector(3)
+    real(real64) ::  q(4)
         q = [0._wp, vector]
     end function
     
     pure function quat_rot_matrix(q, inv) result(R)
-    real(wp),  intent(in) :: q(4)
+    real(real64),  intent(in) :: q(4)
     logical, intent(in), optional :: inv
-    real(wp) ::  q_s, q_v(3), R(3,3), qx(3,3), qxqx(3,3)
+    real(real64) ::  q_s, q_v(3), R(3,3), qx(3,3), qxqx(3,3)
     
         q_s = q(1)
         q_v = q(2:4)
         qx = cross(q_v)
         qxqx = matmul(qx,qx)
         
-        if( present(inv) .and. inv) then
-            q_s = -q_s
+        if( present(inv)) then
+            if( inv ) then
+                q_s = -q_s
+            end if
         end if
         
         R = eye_ + 2*q_s*qx + 2*qxqx
     end function
     
     pure function quat_rot_vector(q, v, inv) result(r)
-    real(wp),  intent(in) :: q(4), v(3)
+    real(real64),  intent(in) :: q(4), v(3)
     logical, intent(in), optional :: inv
-    real(wp) ::  q_s, q_v(3), r(3), qxv(3), qxqxv(3)
+    real(real64) ::  q_s, q_v(3), r(3), qxv(3), qxqxv(3)
         q_s = q(1)
         q_v = q(2:4)
         qxv = cross(q_v,v)
         qxqxv = cross(q_v, qxv)
         
-        if( present(inv) .and. inv) then
-            q_s = -q_s
+        if( present(inv)) then
+            if( inv ) then
+                q_s = -q_s
+            end if
         end if
         
         r = v + 2*q_s*qxv + 2*qxqxv
     end function
     
     pure function quat_conjugate(q) result(p)
-    real(wp), intent(in) :: q(4)
-    real(wp) :: p(4)
+    real(real64), intent(in) :: q(4)
+    real(real64) :: p(4)
         p = [ q(1), -q(2), -q(3), -q(4) ]
     end function
     
     pure function quat_product(q_1,q_2) result(p)
-    real(wp), intent(in) :: q_1(4), q_2(4)
-    real(wp) :: p(4), s_1, s_2, v_1(3), v_2(3)
+    real(real64), intent(in) :: q_1(4), q_2(4)
+    real(real64) :: p(4), s_1, s_2, v_1(3), v_2(3)
         s_1 = q_1(1)
         s_2 = q_2(1)
         v_1 = q_1(2:4)
@@ -404,8 +426,8 @@
     end function
     
     pure function quat_cross_product(q_1,q_2) result(p)
-    real(wp), intent(in) :: q_1(4), q_2(4)
-    real(wp) :: p(4), v_1(3), v_2(3)
+    real(real64), intent(in) :: q_1(4), q_2(4)
+    real(real64) :: p(4), v_1(3), v_2(3)
         v_1 = q_1(2:4)
         v_2 = q_2(2:4)        
         p = [0.0_wp, &
@@ -413,8 +435,8 @@
     end function
 
     pure function quat_dot_product(q_1,q_2) result(p)
-    real(wp), intent(in) :: q_1(4), q_2(4)
-    real(wp) :: p, s_1, s_2, v_1(3), v_2(3)
+    real(real64), intent(in) :: q_1(4), q_2(4)
+    real(real64) :: p, s_1, s_2, v_1(3), v_2(3)
         s_1 = q_1(1)
         s_2 = q_2(1)
         v_1 = q_1(2:4)
@@ -425,14 +447,14 @@
     end function
     
     pure function quat_magnitude(q) result(m)
-    real(wp),  intent(in) :: q(4)
-    real(wp) :: m    
+    real(real64),  intent(in) :: q(4)
+    real(real64) :: m    
          m = sqrt(dot_product(q,q))
     end function
 
     pure function quat_normalize(q) result(p)
-    real(wp),  intent(in) :: q(4)
-    real(wp) :: p(4), m2
+    real(real64),  intent(in) :: q(4)
+    real(real64) :: p(4), m2
         m2 = dot_product(q, q)
         if( m2 >= 0.0_wp) then
             p = q/sqrt(m2)
@@ -442,8 +464,8 @@
     end function
     
     pure function quat_inv(q) result(p)
-    real(wp),  intent(in) :: q(4)
-    real(wp) :: p(4), m2
+    real(real64),  intent(in) :: q(4)
+    real(real64) :: p(4), m2
         m2 = dot_product(q, q)
         if( m2 /= 1 .and. m2/=0) then
             p = [ q(1)/m2, -q(2)/m2, -q(3)/m2, -q(4)/m2 ]
@@ -455,8 +477,8 @@
     end function
     
     function vector_angle(a,b) result(t)
-    real(wp), intent(in) :: a(3), b(3)
-    reaL(wp) :: t, ma, mb, ab
+    real(real64), intent(in) :: a(3), b(3)
+    real(real64) :: t, ma, mb, ab
     
         ! |a.b| = |a| |b| cos(t)
         ! |a×b| = |a| |b| sin(t)

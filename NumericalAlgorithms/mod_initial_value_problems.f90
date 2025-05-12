@@ -19,6 +19,13 @@
     
     INTEGER, PARAMETER :: NDGL = 20
     
+      INTERFACE
+        SUBROUTINE DERIVATIVE(X,Y,YS)
+        IMPORT
+        DOUBLEPRECISION X, Y(:), YS(:)
+        END SUBROUTINE
+      END INTERFACE    
+    
     contains
     
       SUBROUTINE IVP (XK, HK, YK, N, DES, XE, EPSABS, EPSREL,           &
@@ -119,13 +126,15 @@
 !                                                                       
       IMPLICIT DOUBLEPRECISION (A - H, O - Z) 
       
-      INTERFACE
-        SUBROUTINE DES(X,Y,N,YS)
-        IMPORT
-        INTEGER N
-        DOUBLEPRECISION X, Y(N), YS(N)
-        END SUBROUTINE
-      END INTERFACE
+      !INTERFACE
+      !  SUBROUTINE DES(X,Y,N,YS)
+      !  IMPORT
+      !  INTEGER N
+      !  DOUBLEPRECISION X, Y(N), YS(N)
+      !  END SUBROUTINE
+      !END INTERFACE
+      
+      PROCEDURE (DERIVATIVE) :: DES
       
       INTEGER N, NUSED
       DOUBLEPRECISION YK (N), HK, XE, DIFF, S, XK, EPSABS, EPSREL
@@ -307,27 +316,29 @@
 !                                                                       
       IMPLICIT DOUBLEPRECISION (A - H, O - Z) 
       
-      INTERFACE
-        SUBROUTINE DES(X,Y,N,YS)
-        IMPORT
-        INTEGER N
-        DOUBLEPRECISION X, Y(N), YS(N)
-        END SUBROUTINE
-      END INTERFACE
+      !INTERFACE
+      !  SUBROUTINE DES(X,Y,N,YS)
+      !  IMPORT
+      !  INTEGER N
+      !  DOUBLEPRECISION X, Y(N), YS(N)
+      !  END SUBROUTINE
+      !END INTERFACE
+      
+      PROCEDURE (DERIVATIVE) :: DES
       
       INTEGER N, I
       DOUBLEPRECISION X, H, Y (N), Y2 (N), Y3 (N), DUMMY (20) 
       DOUBLEPRECISION K1 (20), K2 (20), K3 (20) 
 !                                                                       
-      CALL DES (X, Y, N, K1) 
+      CALL DES (X, Y, K1) 
       DO 10 I = 1, N 
          DUMMY (I) = Y (I) + H * K1 (I) 
    10 END DO 
-      CALL DES (X + H, DUMMY, N, K2) 
+      CALL DES (X + H, DUMMY, K2) 
       DO 20 I = 1, N 
          DUMMY (I) = Y (I) + 0.25D0 * H * (K1 (I) + K2 (I) ) 
    20 END DO 
-      CALL DES (X + 0.5D0 * H, DUMMY, N, K3) 
+      CALL DES (X + 0.5D0 * H, DUMMY, K3) 
 !                                                                       
       DO 100 I = 1, N 
          Y2 (I) = Y (I) + 0.5D0 * H * (K1 (I) + K2 (I) ) 
@@ -391,13 +402,15 @@
 !                                                                       
       IMPLICIT DOUBLEPRECISION (A - H, O - Z) 
       
-      INTERFACE
-        SUBROUTINE DES(X,Y,N,YS)
-        IMPORT
-        INTEGER N
-        DOUBLEPRECISION X, Y(N), YS(N)
-        END SUBROUTINE
-      END INTERFACE
+      !INTERFACE
+      !  SUBROUTINE DES(X,Y,N,YS)
+      !  IMPORT
+      !  INTEGER N
+      !  DOUBLEPRECISION X, Y(N), YS(N)
+      !  END SUBROUTINE
+      !END INTERFACE
+      
+      PROCEDURE (DERIVATIVE) :: DES
 
       INTEGER N, I
       DOUBLEPRECISION X, H, Y (N), Y4 (N), Y5 (N) 
@@ -405,34 +418,34 @@
       DOUBLEPRECISION K1 (20), K2 (20), K3 (20), K4 (20), K5 (20),      &
       K6 (20)                                                           
 !                                                                       
-      CALL DES (X, Y, N, K1) 
+      CALL DES (X, Y, K1) 
       DO 10 I = 1, N 
          DUMMY (I) = Y (I) + 0.5D0 * H * K1 (I) 
    10 END DO 
-      CALL DES (X + 0.5D0 * H, DUMMY, N, K2) 
+      CALL DES (X + 0.5D0 * H, DUMMY, K2) 
 !                                                                       
       DO 20 I = 1, N 
          DUMMY (I) = Y (I) + 0.25D0 * H * (K1 (I) + K2 (I) ) 
    20 END DO 
-      CALL DES (X + 0.5D0 * H, DUMMY, N, K3) 
+      CALL DES (X + 0.5D0 * H, DUMMY, K3) 
 !                                                                       
       DO 30 I = 1, N 
          DUMMY (I) = Y (I) + H * ( - K2 (I) + 2.0D0 * K3 (I) ) 
    30 END DO 
-      CALL DES (X + H, DUMMY, N, K4) 
+      CALL DES (X + H, DUMMY, K4) 
 !                                                                       
       DO 40 I = 1, N 
          DUMMY (I) = Y (I) + H / 27.0D0 * (7.0D0 * K1 (I) + 10.0D0 * K2 &
          (I) + K4 (I) )                                                 
    40 END DO 
-      CALL DES (X + 2.0D0 / 3.0D0 * H, DUMMY, N, K5) 
+      CALL DES (X + 2.0D0 / 3.0D0 * H, DUMMY, K5) 
 !                                                                       
       DO 50 I = 1, N 
          DUMMY (I) = Y (I) + 0.16D-02 * H * (28.0D0 * K1 (I) - 125.0D0 *&
          K2 (I) + 546.0D0 * K3 (I) + 54.0D0 * K4 (I) - 378.0D0 * K5 (I) &
          )                                                              
    50 END DO 
-      CALL DES (X + 0.2D0 * H, DUMMY, N, K6) 
+      CALL DES (X + 0.2D0 * H, DUMMY, K6) 
 !                                                                       
       DO 100 I = 1, N 
          Y4 (I) = Y (I) + H / 6.0D0 * (K1 (I) + 4.0D0 * K3 (I) + K4 (I) &
@@ -503,13 +516,15 @@
 !*****************************************************************      
 !                                                                       
       IMPLICIT DOUBLEPRECISION (A - H, O - Z) 
-      INTERFACE
-        SUBROUTINE DES(X,Y,N,YS)
-        IMPORT
-        INTEGER N
-        DOUBLEPRECISION X, Y(N), YS(N)
-        END SUBROUTINE
-      END INTERFACE
+      !INTERFACE
+      !  SUBROUTINE DES(X,Y,N,YS)
+      !  IMPORT
+      !  INTEGER N
+      !  DOUBLEPRECISION X, Y(N), YS(N)
+      !  END SUBROUTINE
+      !END INTERFACE
+      
+      PROCEDURE (DERIVATIVE) :: DES
 
       INTEGER N, I
       DOUBLEPRECISION X, H, Y (N), Y4 (N), Y5 (N) 
@@ -518,42 +533,42 @@
       K6 (20), K7 (20), G6 (20), G7 (20)                                
       LOGICAL ST1, ST2 
 !                                                                       
-      CALL DES (X, Y, N, K1) 
+      CALL DES (X, Y, K1) 
       DO 10 I = 1, N 
          DUMMY (I) = Y (I) + 0.2D0 * H * K1 (I) 
    10 END DO 
-      CALL DES (X + 0.2D0 * H, DUMMY, N, K2) 
+      CALL DES (X + 0.2D0 * H, DUMMY, K2) 
 !                                                                       
       DO 20 I = 1, N 
          DUMMY (I) = Y (I) + 0.075D0 * H * (K1 (I) + 3.0D0 * K2 (I) ) 
    20 END DO 
-      CALL DES (X + 0.3D0 * H, DUMMY, N, K3) 
+      CALL DES (X + 0.3D0 * H, DUMMY, K3) 
 !                                                                       
       DO 30 I = 1, N 
          DUMMY (I) = Y (I) + H / 45.0D0 * (44.0D0 * K1 (I) - 168.0D0 *  &
          K2 (I) + 160.0D0 * K3 (I) )                                    
    30 END DO 
-      CALL DES (X + 0.8D0 * H, DUMMY, N, K4) 
+      CALL DES (X + 0.8D0 * H, DUMMY, K4) 
 !                                                                       
       DO 40 I = 1, N 
          DUMMY (I) = Y (I) + H / 6561.0D0 * (19372.0D0 * K1 (I) -       &
          76080.0D0 * K2 (I) + 64448.0D0 * K3 (I) - 1908.0D0 * K4 (I) )  
    40 END DO 
-      CALL DES (X + 8.0D0 / 9.0D0 * H, DUMMY, N, K5) 
+      CALL DES (X + 8.0D0 / 9.0D0 * H, DUMMY, K5) 
 !                                                                       
       DO 50 I = 1, N 
          G6 (I) = Y (I) + H / 167904.0D0 * (477901.0D0 * K1 (I) -       &
          1806240.0D0 * K2 (I) + 1495424.0D0 * K3 (I) + 46746.0D0 * K4 ( &
          I) - 45927.0D0 * K5 (I) )                                      
    50 END DO 
-      CALL DES (X + H, G6, N, K6) 
+      CALL DES (X + H, G6, K6) 
 !                                                                       
       DO 60 I = 1, N 
          G7 (I) = Y (I) + H / 142464.0D0 * (12985.0D0 * K1 (I) +        &
          64000.0D0 * K3 (I) + 92750.0D0 * K4 (I) - 45927.0D0 * K5 (I)   &
          + 18656.0D0 * K6 (I) )                                         
    60 END DO 
-      CALL DES (X + H, G7, N, K7) 
+      CALL DES (X + H, G7, K7) 
 !                                                                       
       DO 100 I = 1, N 
          Y5 (I) = G7 (I) 
@@ -670,12 +685,14 @@
 !                                                                       
       IMPLICIT DOUBLEPRECISION (A - H, O - Z) 
       
-      INTERFACE
-        SUBROUTINE DES(X,Y,YS)
-        IMPORT
-        DOUBLEPRECISION X, Y(:), YS(:)
-        END SUBROUTINE
-      END INTERFACE
+      !INTERFACE
+      !  SUBROUTINE DES(X,Y,YS)
+      !  IMPORT
+      !  DOUBLEPRECISION X, Y(:), YS(:)
+      !  END SUBROUTINE
+      !END INTERFACE
+      
+      PROCEDURE (DERIVATIVE) :: DES
     
       INTEGER N, IERR, I, LFD, IAD
       DOUBLEPRECISION A, DA, Y (N), H, HMX, ABSERR, RELERR, B, HMAX, HF, X
@@ -909,13 +926,15 @@
 !                                                                       
       IMPLICIT DOUBLEPRECISION (A - H, O - Z) 
       
-      INTERFACE
-        SUBROUTINE DES(X,Y,N,YS)
-        IMPORT
-        INTEGER N
-        DOUBLEPRECISION X, Y(N), YS(N)
-        END SUBROUTINE
-      END INTERFACE
+      !INTERFACE
+      !  SUBROUTINE DES(X,Y,N,YS)
+      !  IMPORT
+      !  INTEGER N
+      !  DOUBLEPRECISION X, Y(N), YS(N)
+      !  END SUBROUTINE
+      !END INTERFACE
+      
+      PROCEDURE (DERIVATIVE) :: DES
           
       INTEGER N, NMAX, NUSED, IERR, I, K, NANL, IPIVOT, ITER, MARK
       DOUBLEPRECISION XK, YK (1:N), SG, XE, HK, EPSABS, EPSREL, HK1
@@ -974,7 +993,7 @@
             ZJP1 (K, I) = HELP (I) 
    30    END DO 
    40 END DO 
-      CALL DES (XK, YK, N, F) 
+      CALL DES (XK, YK, F) 
       NUSED = NUSED+1 
 !                                                                       
 !** Determine first Gear-Nordsieck approximation                        
@@ -1004,13 +1023,14 @@
          YKP1 (I) = ZJ (0, I) + ZJ (1, I) + ZJ (2, I) + ZJ (3, I)       &
          + ZJ (4, I)                                                    
    90 END DO 
-      CALL DES (XK + HK, YKP1, N, F) 
+      CALL DES (XK + HK, YKP1, F) 
       DO 120 K = 1, N 
          DO 100 I = 1, N 
             HELP (I) = YKP1 (I) 
   100    END DO 
          HELP (K) = HELP (K) - HS 
-         CALL DES (XK + HK, HELP, N, FS (1, K) ) 
+         ! CALL DES (XK + HK, HELP, FS (1, K) ) 
+         CALL DES (XK + HK, HELP, FS (:, K) ) 
          DO 110 I = 1, N 
             FS (I, K) = - HK * 0.48D0 * (F (I) - FS (I, K) ) / HS 
   110    END DO 
@@ -1038,7 +1058,7 @@
             HELP (I) = HK * 0.48D0 * F (I) + HELP (I) + CON (I) 
   210    END DO 
          CALL GAUSSS (N, FSG, NDGL, IPIVOT, HELP, YKP1) 
-         CALL DES (XK + HK, YKP1, N, F) 
+         CALL DES (XK + HK, YKP1, F) 
   220 END DO 
       NUSED = NUSED+3 
 !                                                                       
@@ -1139,6 +1159,44 @@
 !                                                                       
     END SUBROUTINE GEAR4                          
 
+    subroutine test_mod_ivp
+    use mod_show_matrix
     
+    integer, parameter :: neq = 2
+    doubleprecision, parameter :: m = 1.0d0, k = 12.0d0, d = 0.3d0
+    integer n, nmax, index, nused, ierr
+    doubleprecision t0, te , h, y(neq)
+    
+    index = 1   ! ode method used
+    nmax = 50    ! Fun evals allowed
+    n  = 180
+    
+    t0 = 0.0d0
+    te = 0.25d0
+    h = (te-t0)/n
+    
+    y(1) = 1.0D0
+    y(2) = 0.0D0
+    
+    print *, t0, y, h
+    
+    call IVP(t0, h, y, neq, DES, te, 1d-6, 1d-4, index, nmax, nused, ierr)
+    
+    if( ierr /= 0 ) then
+        print *, 'ERROR #', ierr
+        error stop
+    end if
+    print *, te, y, h
+    
+    contains
+        subroutine DES(X,Y,YS)
+        doubleprecision X, Y(:), YS(:)
+        
+            YS(1) = Y(2)
+            YS(2) = (-k*Y(1) - d*Y(2))/m
+        
+        end subroutine
+    
+    end subroutine
     
     end module

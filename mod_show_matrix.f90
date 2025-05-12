@@ -117,6 +117,53 @@
         end where
         call show_matrix_r(B,w)
     end subroutine
+    
+    subroutine test_show_matrix_random()
+
+    integer, parameter :: n = 12, m = 6
+    
+    integer :: iA(n,m), iV(n)
+    real(real64) :: dA(n,m), dV(n)
+    
+    call RANDOM_NUMBER(dV)    
+    call RANDOM_NUMBER(dA)
+    
+    dV = -1000.0d0 + 2000.0d0 * dV
+    dA = 1 + 1.0d8 * dA
+    
+    iV = NINT(dV)
+    iA = NINT(dA)
+    
+    print *, "Vectors"
+    call show(iV)
+    call show(dV)
+    
+    print *, "Matrices"
+    call show(iA)
+    call show(dA)
+    
+    end subroutine
+        
+    subroutine test_show_matrix_large
+    
+    integer :: row(16), matrix(4,4)    
+    real(real64) :: A(4,4)
+    
+    row = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]    
+    matrix = reshape( row, [4, 4])
+           
+    call show(matrix)
+    
+    A = dble(matrix)
+    
+    A = sqrt( matmul( transpose(A), A) )
+    
+    call show(A, 8)
+    call show(A, 12)
+    call show(A, 16)
+    
+    
+    end subroutine
 
     
     end module

@@ -1,18 +1,54 @@
     module mod_linear_algebra
-    USE, INTRINSIC :: IEEE_ARITHMETIC
+    USE, INTRINSIC :: IEEE_ARITHMETIC, ONLY : IEEE_FMA 
     
 !** FMACHP is the machine constant                                      
 !** (i.e., the smallest positive machine number for which  1+FMACHP > 1 
     DOUBLEPRECISION, PARAMETER :: FMACHP = EPSILON(1.0D0) 
     
+    INTERFACE GAUSS
+        MODULE PROCEDURE :: GAUSS_VEC, GAUSS_MAT
+    END INTERFACE GAUSS
+    
     contains
     
+    FUNCTION GAUSS_VEC(A, Y) RESULT(X)
+    DOUBLEPRECISION, INTENT(in) :: A(:,:), Y(:)
+    DOUBLEPRECISION X(SIZE(A,2))
+    
+    DOUBLEPRECISION LR(SIZE(A,1),SIZE(A,2)), D(SIZE(A,1))
+    INTEGER N, M, MARK, IPIVOT(SIZE(A,2))
+    
+        N = SIZE(A, 1)
+        M = SIZE(A, 2)
+        
+        LR = A
+        
+        CALL GAUSSA( M, LR, N, Y, X, MARK, D, IPIVOT )
+    
+    END FUNCTION
+    
+    FUNCTION GAUSS_MAT(A, Y) RESULT(X)
+    DOUBLEPRECISION, INTENT(in) :: A(:,:), Y(:,:)
+    DOUBLEPRECISION X(SIZE(A,2), SIZE(Y,2))
+    
+    DOUBLEPRECISION LR(SIZE(A,1),SIZE(A,2)), D(SIZE(A,1))
+    INTEGER N, M, K, MARK, IPIVOT(SIZE(A,2))
+    
+        N = SIZE(A, 1)
+        M = SIZE(A, 2)
+        K = SIZE(Y, 2)
+        
+        LR = A
+        
+        CALL GAUSRS( M, LR, N, K, Y, X, MARK, D, IPIVOT )
+    
+    END FUNCTION
       
 ![KA{P 4}{Direct Methods for Solving Linear Systems}                    
 ![       {Direct Methods for Solving Systems of Linear                  
 ![        Equations}*)                                                  
 ![           {Gau"s Algorithm with Column Pivot Search}*)               
-      SUBROUTINE GAUSS (N, A, LDA, Y, X, MARK, D, IPIVOT) 
+      SUBROUTINE GAUSSA(N, A, LDA, Y, X, MARK, D, IPIVOT) 
 !                                                                       
 !*****************************************************************      
 !                                                                *      
@@ -81,7 +117,7 @@
 !                                                                       
       IF (MARK.NE.0) CALL GAUSSS (N, A, LDA, IPIVOT, Y, X) 
       RETURN 
-      END SUBROUTINE GAUSS    
+      END SUBROUTINE GAUSSA    
       
       SUBROUTINE GAUSRS (N, A, LDA, M, RS, XL, MARK, D, IPIVOT) 
 !                                                                       
@@ -389,6 +425,86 @@
    50 END DO 
       RETURN 
       END SUBROUTINE GAUSSS                         
+
+    subroutine test_linear_algebra()
+    use mod_show_matrix
+    implicit none
+    integer i, j, s, k
+    doubleprecision e, d, t1, t2, r
+    doubleprecision, allocatable :: A(:,:), X(:), Y(:), EX(:)
+    doubleprecision, allocatable :: B(:,:), P(:,:), EP(:,:)
+    integer, parameter :: order = 3
     
+        print *, "TESTING mod_linear_algebra"
+        print *, " - Solving linear systems of equations using gaussian elimination."
+        
+        print *, ''
+        print *, 'VECTOR-MATRIX'
+        print '(1x,a12,1x,a12,1x,a12,1x,a12,1x,a12)', 'SIZE', 'REPEATS', 'RESIDUAL', 'TIME', 'RATE (MFP)'
+        
+        do i=1, 8
+            s = 2**(i+1)
+            k = 1024000/(s*s)
+            
+            if( allocated(A) )   deallocate(A )
+            if( allocated(X) )   deallocate(X )
+            if( allocated(Y) )   deallocate(Y )
+            if( allocated(EX) )  deallocate(EX)          
+            
+            allocate(A(s,s))
+            allocate(Y(s))
+            
+            
+            call RANDOM_NUMBER(A)
+            call RANDOM_NUMBER(Y)
+            
+            call CPU_TIME(t1)
+            do j = 1, k
+                X = gauss(A, Y)
+            end do
+            call CPU_TIME(t2)
+            
+            d = dble( t2 - t1 )
+            EX = Y - matmul(A, X)    
+            e = maxval( abs( ex ) )
+            r = (s**order)*k/(d*1e6)
+                        
+            print '(1x,i12,1x,i12,1x,g12.4,1x,g12.4,1x,g12.4)', s, k, e, d, r
+        end do
+    
+        print *, ''
+        print *, 'MATRIX-MATRIX'
+        print '(1x,a12,1x,a12,1x,a12,1x,a12,1x,a12)', 'SIZE', 'REPEATS', 'RESIDUAL', 'TIME', 'RATE (MFP)'
+        
+        do i=1, 8
+            s = 2**(i+1)
+            k = 1024000/(s*s)
+            
+            if( allocated(A) )   deallocate(A )
+            if( allocated(B) )   deallocate(B )
+            if( allocated(P) )   deallocate(P )
+            if( allocated(EP) )  deallocate(EP)
+            
+            allocate(A(s,s))
+            allocate(P(s,s))
+                        
+            call RANDOM_NUMBER(A)            
+            call RANDOM_NUMBER(P)
+            
+            call CPU_TIME(t1)
+            do j = 1, k
+                B = gauss(A, P)
+            end do
+            call CPU_TIME(t2)
+            
+            d = dble( t2 - t1 )
+            EP = P - matmul(A, B)
+            e = maxval( abs( ep ) )
+            r = (s**order)*k/(d*1e6)
+            
+            print '(1x,i12,1x,i12,1x,g12.4,1x,g12.4,1x,g12.4)', s, k, e, d, r
+        end do
+      
+        end subroutine
     
     end module
