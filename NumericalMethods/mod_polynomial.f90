@@ -5,7 +5,7 @@
     integer, parameter :: wp = real64
 
     type :: polynomial
-        real(wp), allocatable :: coef(:)
+        real(real64), allocatable :: coef(:)
     contains
     procedure :: order => p_order
     procedure :: eval => p_eval_x
@@ -34,7 +34,7 @@
     
     pure subroutine p_from_array(p,a)
     type(polynomial), intent(out) :: p
-    real(wp), intent(in) :: a(:)
+    real(real64), intent(in) :: a(:)
     integer :: order
         order = size(a)-1
         allocate(p%coef(0:order))
@@ -42,7 +42,7 @@
     end subroutine
     
     pure subroutine array_from_p(a,p)
-    real(wp), intent(out), allocatable :: a(:)
+    real(real64), intent(out), allocatable :: a(:)
     class(polynomial), intent(in) :: p
     integer :: o
         o = order(p)
@@ -51,7 +51,7 @@
     end subroutine
     
     pure function new_const(x) result(p)
-    real(wp), intent(in) :: x
+    real(real64), intent(in) :: x
     type(polynomial) :: p
         allocate(p%coef(0:0))
         p%coef(0) = x
@@ -65,8 +65,8 @@
 
     pure function p_eval_x(p,x) result(y)
     class(polynomial), intent(in) :: p
-    real(wp), intent(in) :: x
-    real(wp):: y
+    real(real64), intent(in) :: x
+    real(real64):: y
     integer :: i, order
     order = size(p%coef)-1
     y = 0.0_wp
@@ -78,7 +78,7 @@
     pure function p_to_string(p,fmt) result(polystr)
     class(polynomial), intent(in) :: p
     character(len=*), intent(in), optional :: fmt
-    !real(wp), intent(in) :: p%coef(0:)
+    !real(real64), intent(in) :: p%coef(0:)
     character(len=:), allocatable :: polystr, buffer
     character(32) :: s
     integer :: i
@@ -131,7 +131,7 @@
         c%coef(0:nb) = c%coef(0:nb) - b%coef(0:nb)
     end function
     pure function p_scale1(a,b) result(c)
-    real(wp), intent(in) :: a
+    real(real64), intent(in) :: a
     type(polynomial), intent(in) :: b
     type(polynomial) :: c
     integer :: nc
@@ -140,7 +140,7 @@
         c%coef(0:nc) = a * b%coef(0:nc)
     end function
     pure function p_scale2(b,a) result(c)
-    real(wp), intent(in) :: a
+    real(real64), intent(in) :: a
     type(polynomial), intent(in) :: b
     type(polynomial) :: c
     integer :: nc

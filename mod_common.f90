@@ -1,6 +1,7 @@
     !!DEC$ REAL:8
 
     module mod_common
+    use, intrinsic :: ieee_arithmetic, only : ieee_fma 
     use, intrinsic :: iso_fortran_env, only: &
         real64, &
         real32, &
