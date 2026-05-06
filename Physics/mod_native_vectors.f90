@@ -372,20 +372,62 @@
     pure function quat_rot_matrix(q, inv) result(R)
     real(real64),  intent(in) :: q(4)
     logical, intent(in), optional :: inv
-    real(real64) ::  q_s, q_v(3), R(3,3), qx(3,3), qxqx(3,3)
+    !real(real64) ::  q_s, q_v(3), R(3,3), qx(3,3), qxqx(3,3)
+    !
+    !    q_s = q(1)
+    !    q_v = q(2:4)
+    !    qx = cross(q_v)
+    !    qxqx = matmul(qx,qx)
+    !    
+    !    if( present(inv)) then
+    !        if( inv ) then
+    !            q_s = -q_s
+    !        end if
+    !    end if
+    !    
+    !    R = eye_ + 2*q_s*qx + 2*qxqx
+        
+    real(8) :: R(3,3)
+    real(8) :: w,x,y,z
+    real(8) :: x2, y2, z2, xy, xz, yz, wx, wy, wz
     
-        q_s = q(1)
-        q_v = q(2:4)
-        qx = cross(q_v)
-        qxqx = matmul(qx,qx)
+        w = q(1)
+        x = q(2)
+        y = q(3)
+        z = q(4)
         
         if( present(inv)) then
             if( inv ) then
-                q_s = -q_s
+                w = -w
             end if
         end if
-        
-        R = eye_ + 2*q_s*qx + 2*qxqx
+
+        ! Precompute products for speed
+        x2 = x * x
+        y2 = y * y
+        z2 = z * z
+        xy = x * y
+        xz = x * z
+        yz = y * z
+        wx = w * x
+        wy = w * y
+        wz = w * z
+
+        ! Column 1
+        R(1,1) = 1.0_8 - 2.0_8 * (y2 + z2)
+        R(2,1) = 2.0_8 * (xy + wz)
+        R(3,1) = 2.0_8 * (xz - wy)
+
+        ! Column 2
+        R(1,2) = 2.0_8 * (xy - wz)
+        R(2,2) = 1.0_8 - 2.0_8 * (x2 + z2)
+        R(3,2) = 2.0_8 * (yz + wx)
+
+        ! Column 3
+        R(1,3) = 2.0_8 * (xz + wy)
+        R(2,3) = 2.0_8 * (yz - wx)
+        R(3,3) = 1.0_8 - 2.0_8 * (x2 + y2)
+                
     end function
     
     pure function quat_rot_vector(q, v, inv) result(r)
@@ -404,45 +446,62 @@
         end if
         
         r = v + 2*q_s*qxv + 2*qxqxv
+        
     end function
     
-    pure function quat_conjugate(q) result(p)
+    pure function quat_conjugate(q) result(q_out)
     real(real64), intent(in) :: q(4)
-    real(real64) :: p(4)
-        p = [ q(1), -q(2), -q(3), -q(4) ]
+    real(real64) :: q_out(4)
+        q_out = [ q(1), -q(2), -q(3), -q(4) ]
     end function
     
-    pure function quat_product(q_1,q_2) result(p)
-    real(real64), intent(in) :: q_1(4), q_2(4)
-    real(real64) :: p(4), s_1, s_2, v_1(3), v_2(3)
-        s_1 = q_1(1)
-        s_2 = q_2(1)
-        v_1 = q_1(2:4)
-        v_2 = q_2(2:4)
+    pure function quat_product(q1, q2) result(q_out)
+    real(real64), intent(in) :: q1(4), q2(4)
+    real(real64) :: q_out(4)
+    !real(real64) :: s_1, s_2, v_1(3), v_2(3)
+    !    s_1 = q1(1)
+    !    s_2 = q2(1)
+    !    v_1 = q1(2:4)
+    !    v_2 = q2(2:4)
+    !    
+    !    q_out = [s_1*s_2 - dot_product(v_1,v_2), &
+    !        s_1*v_2 + s_2*v_1 + cross(v_1,v_2)]
+    real(8) :: w1,x1,y1,z1,w2,x2,y2,z2
+        w1 = q1(1)
+        x1 = q1(2)
+        y1 = q1(3)
+        z1 = q1(4)
+
+        w2 = q2(1)
+        x2 = q2(2)
+        y2 = q2(3)
+        z2 = q2(4)
         
-        p = [s_1*s_2 - dot_product(v_1,v_2), &
-            s_1*v_2 + s_2*v_1 + cross(v_1,v_2)]
-        
+        q_out(1) = w1*w2 - x1*x2 - y1*y2 - z1*z2
+        q_out(2) = w1*x2 + x1*w2 + y1*z2 - z1*y2
+        q_out(3) = w1*y2 - x1*z2 + y1*w2 + z1*x2
+        q_out(4) = w1*z2 + x1*y2 - y1*x2 + z1*w2
+                
     end function
     
-    pure function quat_cross_product(q_1,q_2) result(p)
-    real(real64), intent(in) :: q_1(4), q_2(4)
-    real(real64) :: p(4), v_1(3), v_2(3)
-        v_1 = q_1(2:4)
-        v_2 = q_2(2:4)        
-        p = [0.0_real64, &
+    pure function quat_cross_product(q1,q2) result(q_out)
+    real(real64), intent(in) :: q1(4), q2(4)
+    real(real64) :: q_out(4), v_1(3), v_2(3)
+        v_1 = q1(2:4)
+        v_2 = q2(2:4)        
+        q_out = [0.0_real64, &
             cross(v_1,v_2)]        
     end function
 
-    pure function quat_dot_product(q_1,q_2) result(p)
-    real(real64), intent(in) :: q_1(4), q_2(4)
-    real(real64) :: p, s_1, s_2, v_1(3), v_2(3)
-        s_1 = q_1(1)
-        s_2 = q_2(1)
-        v_1 = q_1(2:4)
-        v_2 = q_2(2:4)
+    pure function quat_dot_product(q1,q2) result(q_out)
+    real(real64), intent(in) :: q1(4), q2(4)
+    real(real64) :: q_out, s_1, s_2, v_1(3), v_2(3)
+        s_1 = q1(1)
+        s_2 = q2(1)
+        v_1 = q1(2:4)
+        v_2 = q2(2:4)
         
-        p = s_1*s_2 + dot_product(v_1,v_2)
+        q_out = s_1*s_2 + dot_product(v_1,v_2)
         
     end function
     
@@ -452,25 +511,25 @@
          m = sqrt(dot_product(q,q))
     end function
 
-    pure function quat_normalize(q) result(p)
+    pure function quat_normalize(q) result(q_out)
     real(real64),  intent(in) :: q(4)
-    real(real64) :: p(4), m2
+    real(real64) :: q_out(4), m2
         m2 = dot_product(q, q)
         if( m2 >= 0.0_real64) then
-            p = q/sqrt(m2)
+            q_out = q/sqrt(m2)
         else
-            p = q
+            q_out = q
         end if
     end function
     
-    pure function quat_inv(q) result(p)
+    pure function quat_inv(q) result(q_out)
     real(real64),  intent(in) :: q(4)
-    real(real64) :: p(4), m2
+    real(real64) :: q_out(4), m2
         m2 = dot_product(q, q)
         if( m2 /= 1 .and. m2/=0) then
-            p = [ q(1)/m2, -q(2)/m2, -q(3)/m2, -q(4)/m2 ]
+            q_out = [ q(1)/m2, -q(2)/m2, -q(3)/m2, -q(4)/m2 ]
         else if(m2 /= 0) then
-            p = [ q(1), -q(2), -q(3), -q(4) ]
+            q_out = [ q(1), -q(2), -q(3), -q(4) ]
         else
             error stop "Cannot invert a zero quaternion."
         end if
