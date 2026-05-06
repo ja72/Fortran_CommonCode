@@ -13,20 +13,23 @@
     implicit none
     
     ! JA - Precission
-    real(real64), parameter :: eps  = 1.0_real64/4503599627370496
-    real(real64), parameter :: tiny  = 1.0_real64/68719476736
+    real(real64), parameter :: eps  = 1.0_real64/4503599627370496_8
+    real(real64), parameter :: tiny  = 1.0_real64/68719476736_8
     real(real64), parameter :: huge  = 1/tiny
+    real(real64), parameter :: ONE = 1._real64    
+    real(real64), parameter :: NAN = TRANSFER(z'7FF0000000000001', ONE)
 
     ! JA - Trig constants
-    real(real64), parameter :: pi    = 3.1415926535897932d0
-    real(real64), parameter :: pid2  = 1.5707963267948966d0
-    real(real64), parameter :: twopi = 6.2831853071795864d0
-    real(real64), parameter :: pi_sq = 9.8690440108935862d0
-    real(real64), parameter :: rad   = 1.7453292519943296d-2
-    real(real64), parameter :: deg   = 57.29577951308232d0
-    real(real64), parameter :: div_pi= 0.31830988618379067d0
-    real(real64), parameter :: oned3 = 3.333333333333333d-1
-    real(real64), parameter :: tend3 = 3.3333333333333333d0
+    real(real64), parameter :: pi    = 3.1415926535897932_real64
+    real(real64), parameter :: pid2  = 1.5707963267948966_real64
+    real(real64), parameter :: twopi = 6.2831853071795864_real64
+    real(real64), parameter :: pi_sq = 9.8690440108935862_real64
+    real(real64), parameter :: rad   = 0.017453292519943296_real64
+    real(real64), parameter :: deg   = 57.29577951308232_real64
+    real(real64), parameter :: div_pi= 0.31830988618379067_real64
+    real(real64), parameter :: oned3 = 0.3333333333333333_real64
+    real(real64), parameter :: tend3 = 3.3333333333333333_real64
+    real(real64), parameter :: sqrt_3 = 1.732050807568877_real64
 
     ! JA - Unit Conversion Factors
     real(real64), parameter :: mm_per_inch = 25.4d0                         ! in -> mm

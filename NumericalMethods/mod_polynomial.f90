@@ -69,7 +69,7 @@
     real(real64):: y
     integer :: i, order
     order = size(p%coef)-1
-    y = 0.0_wp
+    y = 0.0_real64
     do i=0, order
         y = x*y + p%coef(order-i)
     end do
@@ -114,7 +114,7 @@
         nb = order(b)
         nc = max(na,nb)
         allocate(c%coef(0:nc))
-        c%coef = 0.0_wp
+        c%coef = 0.0_real64
         c%coef(0:na) = a%coef(0:na)
         c%coef(0:nb) = c%coef(0:nb) + b%coef(0:nb)
     end function
@@ -126,7 +126,7 @@
         nb = order(b)
         nc = max(na,nb)
         allocate(c%coef(0:nc))
-        c%coef = 0.0_wp
+        c%coef = 0.0_real64
         c%coef(0:na) = a%coef(0:na)        
         c%coef(0:nb) = c%coef(0:nb) - b%coef(0:nb)
     end function
@@ -158,7 +158,7 @@
         nb = order(b)
         nc = na + nb
         allocate(c%coef(0:nc))
-        c%coef = 0.0_wp
+        c%coef = 0.0_real64
         do i=0, na
             do j=0, nb
                 k = i + j

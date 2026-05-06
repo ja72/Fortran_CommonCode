@@ -11,14 +11,14 @@
         enumerator :: z_axis = 3
     end enum
     
-    real(real64), dimension(3), parameter :: o_ = [0._wp,0._wp,0._wp]
-    real(real64), dimension(3), parameter :: i_ = [1._wp,0._wp,0._wp]
-    real(real64), dimension(3), parameter :: j_ = [0._wp,1._wp,0._wp]
-    real(real64), dimension(3), parameter :: k_ = [0._wp,0._wp,1._wp]
-    real(real64), dimension(4), parameter :: q_eye = [1._wp, 0._wp, 0._wp, 0._wp]
+    real(real64), dimension(3), parameter :: o_ = [0._real64,0._real64,0._real64]
+    real(real64), dimension(3), parameter :: i_ = [1._real64,0._real64,0._real64]
+    real(real64), dimension(3), parameter :: j_ = [0._real64,1._real64,0._real64]
+    real(real64), dimension(3), parameter :: k_ = [0._real64,0._real64,1._real64]
+    real(real64), dimension(4), parameter :: q_eye = [1._real64, 0._real64, 0._real64, 0._real64]
     
-    real(real64), dimension(3,3), parameter :: zero_ = reshape( [0._wp,0._wp,0._wp, 0._wp,0._wp,0._wp, 0._wp,0._wp,0._wp], [3,3])
-    real(real64), dimension(3,3), parameter :: eye_ = reshape( [1._wp,0._wp,0._wp, 0._wp,1._wp,0._wp, 0._wp,0._wp,1._wp], [3,3])
+    real(real64), dimension(3,3), parameter :: zero_ = reshape( [0._real64,0._real64,0._real64, 0._real64,0._real64,0._real64, 0._real64,0._real64,0._real64], [3,3])
+    real(real64), dimension(3,3), parameter :: eye_ = reshape( [1._real64,0._real64,0._real64, 0._real64,1._real64,0._real64, 0._real64,0._real64,1._real64], [3,3])
 
     interface vector
         module procedure vector_from_axis
@@ -142,11 +142,11 @@
     real(real64) :: res(3)
         select case(axis)
         case (x_axis)
-            res = [ vector(1), 0._wp, 0._wp]
+            res = [ vector(1), 0._real64, 0._real64]
         case (y_axis)
-            res = [ 0._wp, vector(2), 0._wp]
+            res = [ 0._real64, vector(2), 0._real64]
         case (z_axis)
-            res = [ 0._wp, 0._wp, vector(3)]
+            res = [ 0._real64, 0._real64, vector(3)]
         case default
             res = o_
         end select
@@ -201,9 +201,9 @@
     real(real64) ::  c(3,3)
     
         c = reshape( &
-            [0._wp, a(3), -a(2), &
-            -a(3), 0._wp, a(1), &
-            a(2), -a(1), 0._wp], [3,3])
+            [0._real64, a(3), -a(2), &
+            -a(3), 0._real64, a(1), &
+            a(2), -a(1), 0._real64], [3,3])
         
     end function
         
@@ -235,9 +235,9 @@
         c = cos(angle)
         s = sin(angle)
         res = reshape( &
-            [1._wp, 0._wp, 0._wp, &
-            0._wp, c,s, &
-            0._wp, -s,c], [3,3] )        
+            [1._real64, 0._real64, 0._real64, &
+            0._real64, c,s, &
+            0._real64, -s,c], [3,3] )        
     end function
     
     function vector_rotate_y(vector, angle) result(res)
@@ -257,9 +257,9 @@
         c = cos(angle)
         s = sin(angle)
         res = reshape( &
-            [ c, 0._wp, -s, &
-            0._wp, 1._wp, 0._wp, &
-            s, 0._wp, c], [3,3] )        
+            [ c, 0._real64, -s, &
+            0._real64, 1._real64, 0._real64, &
+            s, 0._real64, c], [3,3] )        
     end function
     
     function vector_rotate_z(vector, angle) result(res)
@@ -279,9 +279,9 @@
         c = cos(angle)
         s = sin(angle)
         res = reshape( &
-            [c,s,0._wp, &
-            -s,c,0._wp, &
-            0._wp,0._wp,1._wp], [3,3] )        
+            [c,s,0._real64, &
+            -s,c,0._real64, &
+            0._real64,0._real64,1._real64], [3,3] )        
     end function
     
     function vector_rotate_axis(vector, axis, angle) result(res)
@@ -366,7 +366,7 @@
     pure function quat_from_vector(vector) result(q)
     real(real64),  intent(in) :: vector(3)
     real(real64) ::  q(4)
-        q = [0._wp, vector]
+        q = [0._real64, vector]
     end function
     
     pure function quat_rot_matrix(q, inv) result(R)
@@ -430,7 +430,7 @@
     real(real64) :: p(4), v_1(3), v_2(3)
         v_1 = q_1(2:4)
         v_2 = q_2(2:4)        
-        p = [0.0_wp, &
+        p = [0.0_real64, &
             cross(v_1,v_2)]        
     end function
 
@@ -456,7 +456,7 @@
     real(real64),  intent(in) :: q(4)
     real(real64) :: p(4), m2
         m2 = dot_product(q, q)
-        if( m2 >= 0.0_wp) then
+        if( m2 >= 0.0_real64) then
             p = q/sqrt(m2)
         else
             p = q
@@ -485,8 +485,8 @@
         ma = norm(a)
         mb = norm(b)
     
-        if( ma == 0._wp .or. mb == 0._wp ) then
-            t = 0._wp
+        if( ma == 0._real64 .or. mb == 0._real64 ) then
+            t = 0._real64
             return
         end if
     

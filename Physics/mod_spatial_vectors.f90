@@ -273,19 +273,19 @@
     
     pure function vec2_zero() result(x)
     type(vector2) :: x
-        x%data = 0.0_wp
+        x%data = 0.0_real64
     end function
     pure function vec3_zero() result(x)
     type(vector3) :: x
-        x%data = 0.0_wp
+        x%data = 0.0_real64
     end function
     pure function mat2_zero() result(x)
     type(matrix2) :: x
-        x%data = 0.0_wp
+        x%data = 0.0_real64
     end function
     pure function mat3_zero() result(x)
     type(matrix3) :: x
-        x%data = 0.0_wp
+        x%data = 0.0_real64
     end function
     
     pure function vec_zeros(n,e) result(x)
@@ -297,7 +297,7 @@
         if( present(e) ) then
             x%data(1:n) = e
         else
-            x%data(1:n) = 0._wp
+            x%data(1:n) = 0._real64
         endif
     end function
     pure function vec_elemental(n,i) result(x)
@@ -305,7 +305,7 @@
     integer, intent(in) :: n, i
         x = vec_zeros(n)
         if(i>= 1 .and. i<=n) then
-            x%data(i) = 1._wp
+            x%data(i) = 1._real64
         end if
     end function
     
@@ -337,7 +337,7 @@
         if( present(e) ) then
             x%data(1:n,1:m) = e
         else
-            x%data(1:n,1:m) = 0._wp
+            x%data(1:n,1:m) = 0._real64
         endif
     end function
     pure function mat_elemental(n,m,i,j) result(x)
@@ -345,7 +345,7 @@
     integer, intent(in) :: n, m, i, j
         x = mat_zeros(n,m)
         if(i>= 1 .and. i<=n .and. j>= 1 .and. j<=m) then
-            x%data(i,j) = 1._wp
+            x%data(i,j) = 1._real64
         end if        
     end function
     function mat_random_unit(n,m) result(x)
@@ -379,7 +379,7 @@
             x = mat_zeros(n,n)
         end if
         forall(i=1:min(n,m))
-            x%data(i,i) = 1._wp
+            x%data(i,i) = 1._real64
         end forall
     end function
     
@@ -697,7 +697,7 @@
         lu%sgn=1; lu%ierr=0
 
         do i=1,n
-            amax=0_wp
+            amax=0_real64
             do j=1,n
                 if (abs(lu%data(i,j)) > amax) amax=abs(lu%data(i,j))
             end do ! j loop
@@ -721,7 +721,7 @@
                 end do ! k loop
                 lu%data(i,j) = -summ
             end do ! i loop
-            amax = 0._wp
+            amax = 0._real64
             do i=j,n
                 !summ = lu%data(i,j)
                 !do k=1,j-1
@@ -1115,10 +1115,10 @@
     type(vector) :: c, x, e
     n = 12
     
-    A = 5._wp * ident(n) + rand(n,n)
+    A = 5._real64 * ident(n) + rand(n,n)
     print *, "A="
     call show(A%data)
-    c = rand(n, -1._wp, 1._wp)
+    c = rand(n, -1._real64, 1._real64)
     print *, "c="
     call show(c%data)
     x = solve(A,c)

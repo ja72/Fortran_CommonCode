@@ -7,10 +7,10 @@ implicit none
     
     !call test_mod_show()
     !call test_mod_spatial_vectors()
-    !call test_mod_array_inv()
+    call test_mod_array_inv()
     !call test_mod_nasa()
     !call test_mod_rigid_bodies()
-    call test_mod_linalg()
+    !call test_mod_linalg()
         
     contains
     

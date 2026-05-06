@@ -1,4 +1,4 @@
-module mod_array_inv
+﻿module mod_array_inv
 use mod_common
 use mod_show_matrix
 implicit none
@@ -23,6 +23,10 @@ implicit none
     end interface
     interface solve
         module procedure :: mat_solve_vec, mat_solve_mat
+    end interface
+    
+    interface eigv
+        module procedure :: mat_eigv
     end interface
     
     interface   ! mat2
@@ -62,8 +66,13 @@ implicit none
     real(real64) :: x(3)
     real(real64), intent(in) :: A(3,3), b(3)
     end function
-    module function mat3_eigv(A,V) result(D)
-    real(real64) :: D(3)
+    module function mat3_eigv(A,V) result(L)
+    real(real64) :: L(3)
+    real(real64), intent(in) :: A(3,3)
+    real(real64), intent(out), optional :: V(3,3)
+    end function
+    module function mat3_eigv_cust(A,V) result(L)
+    real(real64) :: L(3)
     real(real64), intent(in) :: A(3,3)
     real(real64), intent(out), optional :: V(3,3)
     end function
@@ -149,8 +158,8 @@ implicit none
         
         select case(n)
         case(1)  
-            d(1) = A(1,1)
-            V(1,1) = 1.d0
+            d = A(1,1)
+            V = 1.d0
         case(2)
             d = mat2_eigv(A,V)
         case(3)
@@ -264,9 +273,9 @@ implicit none
             error stop "Expecting a square matrix."
         end if
         allocate(A_inv(n,n))
-        A_inv = 0.0_wp
+        A_inv = 0.0_real64
         forall(i=1:n)
-            A_inv(i,i) = 1.0_wp
+            A_inv(i,i) = 1.0_real64
         end forall
         
         ok = .false.
@@ -381,24 +390,33 @@ implicit none
     end function
     
     subroutine test_array_inv()    
-    real(real64), allocatable :: A(:,:), b(:), x(:), A_inv(:,:)
-    real(real64) :: d
-    integer n
+    real(real64), allocatable :: A(:,:), b(:), x(:), A_inv(:,:), v(:,:), d(:)
+    integer n, i
     
-    do n=1, 4
+    do n=2, 4
         allocate(A(n,n))
         allocate(b(n))
+        allocate(V(n,n))
+        allocate(d(n))
         call RANDOM_NUMBER(A)
         call RANDOM_NUMBER(b)
         b = -1._real64 + 2._real64*b
-        
+        forall(i=1:n)
+            A(i,i) = A(i,i) + 1._real64
+        end forall
         print *,"Size = ", n
         
         print *, "A="
         call show(A)
                 
-        d = det(A)
-        print *, "det(A) = ", d
+        d = eigv(A,V)
+        print *, "det(A) = ", det(A)
+        print *, "D="
+        call show(d)
+        print *, "V="
+        call show(V)
+        print *, "inv(V)*A*V="
+        call show( matmul(inv(V), matmul(A,V)) )
         
         A_inv = inv(A)
         print *, "inv(A)="
@@ -412,6 +430,8 @@ implicit none
         
         deallocate(A)
         deallocate(b)
+        deallocate(V)
+        deallocate(d)
     end do
     
     end subroutine
@@ -523,140 +543,284 @@ contains
         x(3) = d_inv*(A(1,1)*(A(2,2)*b(3)-A(3,2)*b(2))+A(1,2)*(A(3,1)*b(2)-A(2,1)*b(3))+b(1)*(A(2,1)*A(3,2)-A(2,2)*A(3,1)))
     end 
     
-    module procedure mat3_eigv
-    implicit real(real64) (T)
+    module procedure mat3_eigv_cust
+    !implicit real(real64) (T)
+    
     real(real64) :: & 
         A_11,A_12,A_13, &
         A_21,A_22,A_23, &
         A_31,A_32,A_33
     
-    real(real64) :: t2,t3,t4,t5,t6,t7,t8,t9
-    real(real64) :: t10,t11,t12,t13,t14,t15,t16,t17,t18,t19
-    real(real64) :: t20,t21,t22,t23,t24,t25,t26,t27,t28,t29
-    real(real64) :: t30,t31,t32,t33,t34,t35
-    real(real64) :: t40,t41,t42,t43,t44,t45,t46,t47,t48,t49
-    real(real64) :: t50,t51,t52,t53,t54,t56,t57,t58
-    real(real64) :: t60,t61,t64,t65,t66,t67,t68
-    real(real64) :: t73,t74,t75,t76,t78,t79
-    real(real64) :: t80,t81,t82,t84,t85,t86,t87,t88,t89
-    real(real64) :: t91,t92,t93,t94,t95,t97,t98,t99
-    real(real64) :: t100,t101,t102,t103,t104
+    real(real64) :: & 
+        C_0, C_1, C_2, PHI, &
+        L_1, L_2, L_3
     
-      A_11 = A(1,1)
-      A_21 = A(2,1)
-      A_31 = A(3,1)
-      A_12 = A(1,2)
-      A_22 = A(2,2)
-      A_32 = A(3,2)
-      A_13 = A(1,3)
-      A_23 = A(2,3)
-      A_33 = A(3,3)
+    real(real64) :: & 
+        t1, t2, t3, t4, t5, t6, t7, t8, t9, &
+        t11, t12
     
-      t2 = A_31**2
-      t3 = A_32**2
-      t4 = A_11*A_22
-      t5 = A_12*A_21
-      t6 = A_11*A_31
-      t7 = A_12*A_31
-      t8 = A_11*A_33
-      t9 = A_13*A_31
-      t10 = A_21*A_32
-      t11 = A_22*A_32
-      t12 = A_22*A_33
-      t13 = A_23*A_32
-      t14 = A_31*A_33
-      t15 = A_32*A_33
-      t24 = A_11+A_22+A_33
-      t29 = sqrt(3.0D0)
-      t30 = A_11/3.0D0
-      t31 = A_22/3.0D0
-      t32 = A_33/3.0D0
-      t16 = A_32*t6
-      t17 = A_33*t6
-      t18 = A_33*t7
-      t19 = A_32*t9
-      t20 = A_31*t11
-      t21 = A_33*t10
-      t22 = A_31*t13
-      t23 = A_33*t11
-      t25 = A_12*t2
-      t26 = A_13*t2
-      t27 = A_21*t3
-      t28 = A_23*t3
-      t33 = -t5
-      t34 = -t9
-      t35 = -t13
-      t41 = t24**2
-      t42 = t24**3
-      t43 = t4/3.0D0
-      t44 = t5/3.0D0
-      t45 = t8/3.0D0
-      t46 = t9/3.0D0
-      t47 = t12/3.0D0
-      t48 = t13/3.0D0
-      t49 = (A_33*t4)/2.0D0
-      t50 = (A_11*t13)/2.0D0
-      t51 = (A_33*t5)/2.0D0
-      t52 = (A_23*t7)/2.0D0
-      t53 = (A_13*t10)/2.0D0
-      t54 = (A_22*t9)/2.0D0
-      t65 = t6+t10+t14
-      t66 = t7+t11+t15
-      t56 = -t43
-      t57 = -t45
-      t58 = -t47
-      t60 = -t50
-      t61 = -t51
-      t64 = -t54
-      t67 = t41/9.0D0
-      t68 = t42/2.7D+1
-      t73 = t4+t8+t12+t33+t34+t35
-      t74 = -1.0D0/(t16-t20-t25+t27)
-      t78 = (t18-t19+t23-t28)/(t16-t20-t25+t27)
-      t75 = (t24*t73)/6.0D0
-      t79 = t44+t46+t48+t56+t57+t58+t67
-      t80 = t74*(t17+t21-t22-t26)
-      t76 = -t75
-      t81 = t79**3
-      t82 = -t81
-      t84 = (t49+t52+t53+t60+t61+t64+t68+t76)**2
-      t85 = t82+t84
-      t86 = sqrt(t85)
-      t87 = t49+t52+t53+t60+t61+t64+t68+t76+t86
-      t88 = t87**(1.0D0/3.0D0)
-      t89 = 1.0D0/t88
-      t91 = t88/2.0D0
-      t92 = -t91
-      t93 = t79*t89
-      t94 = t93/2.0D0
-      t97 = t29*(t88-t93)*(0.0D0,-5.0D-1)
-      t98 = t29*(t88-t93)*(0.0D0,5.0D-1)
-      t99 = t30+t31+t32+t88+t93
-      t95 = -t94
-      t100 = t99**2
-      t101 = t30+t31+t32+t92+t95+t97
-      t102 = t30+t31+t32+t92+t95+t98
-      t103 = t101**2
-      t104 = t102**2
+    integer :: i
+    
+        A_11 = A(1,1)
+        A_21 = A(2,1)
+        A_31 = A(3,1)
+        A_12 = A(1,2)
+        A_22 = A(2,2)
+        A_32 = A(3,2)
+        A_13 = A(1,3)
+        A_23 = A(2,3)
+        A_33 = A(3,3)
+        
+        C_0 = A_11*(A_22*A_33-A_23*A_32)+A_12*(A_23*A_31-A_21*A_33)+A_13*(A_21*A_32-A_22*A_31)
+        C_1 = A_11*(A_22+A_33)-A_12*A_21-A_13*A_31+A_22*A_33-A_23*A_32
+        C_2 = A_11+A_22+A_33
+        
+        t1 = C_2**2
+        t2 = 27*C_0-C_2*(9*C_1-2*t1)
+        t3 = 2*((t1-3*C_1)**3)
+        if( t3<0 ) then
+            error stop 'negative disciminate.'
+        end if
+        t4 = sqrt(t3)
+        t5 = ( t2 )/( t4 )
+        if( abs(t3)>1 ) then
+            error stop 'improper asin() call.'
+        end if
+        PHI = ASIN( t5 )/3
+        
+        t6 = C_2**2-3*C_1
+        t7 = sqrt(t6)
+        t8 = SIN(PHI)
+        t9 = COS(PHI)
+        t11 = t7*t8/3+C_2/3
+        t12 = sqrt_3*t7*t9/3
+        
+        L_1= C_2/3-2*t7*t8/3
+        L_2= t11 + t12
+        L_3= t11 - t12
+                
+        L(1) = L_1
+        L(2) = L_2
+        L(3) = L_3
+        
+        if(present(V)) then            
+            do i=1,3
+                V(1,i) =  A_12*(A_23-A_33+L(i))-A_13*(A_22-A_32-L(i))+A_22*(A_33-L(i))-A_23*A_32-L(i)*(A_33-L(i))
+                V(2,i) = -A_11*(A_23-A_33+L(i))+A_13*(A_21-A_31)+A_21*(L(i)-A_33)+A_23*(A_31+L(i))-L(i)*(A_33-L(i))
+                V(3,i) =  A_11*(A_22-A_32-L(i))+A_12*(A_31-A_21)+A_21*A_32-A_22*(A_31+L(i))+L(i)*(A_31+A_32+L(i))
+            end do                
+        end if
+    end
+
+    module procedure mat3_eigv
+    !implicit real(real64) (T)
+    !real(real64) :: & 
+    !    A_11,A_12,A_13, &
+    !    A_21,A_22,A_23, &
+    !    A_31,A_32,A_33
+    
+    !real(real64) :: t2,t3,t4,t5,t6,t7,t8,t9
+    !real(real64) :: t10,t11,t12,t13,t14,t15,t16,t17,t18,t19
+    !real(real64) :: t20,t21,t22,t23,t24,t25,t26,t27,t28,t29
+    !real(real64) :: t30,t31,t32,t33,t34,t35
+    !real(real64) :: t41,t42,t43,t44,t45,t46,t47,t48,t49
+    !real(real64) :: t50,t51,t52,t53,t54,t56,t57,t58
+    !real(real64) :: t60,t61,t64,t65,t66,t67,t68
+    !real(real64) :: t73,t74,t75,t76,t78,t79
+    !real(real64) :: t80,t81,t82,t84,t85,t86,t87,t88,t89
+    !real(real64) :: t91,t92,t93,t94,t95,t97,t98,t99
+    !real(real64) :: t100,t101,t102,t103,t104
+    
+        integer :: i
+    
+        !A_11 = A(1,1)
+        !A_21 = A(2,1)
+        !A_31 = A(3,1)
+        !A_12 = A(1,2)
+        !A_22 = A(2,2)
+        !A_32 = A(3,2)
+        !A_13 = A(1,3)
+        !A_23 = A(2,3)
+        !A_33 = A(3,3)
+    
+        !t2 = A_31**2
+        !t3 = A_32**2
+        !t4 = A_11*A_22
+        !t5 = A_12*A_21
+        !t6 = A_11*A_31
+        !t7 = A_12*A_31
+        !t8 = A_11*A_33
+        !t9 = A_13*A_31
+        !t10 = A_21*A_32
+        !t11 = A_22*A_32
+        !t12 = A_22*A_33
+        !t13 = A_23*A_32
+        !t14 = A_31*A_33
+        !t15 = A_32*A_33
+        !t24 = A_11+A_22+A_33
+        !t29 = sqrt(3.0D0)
+        !t30 = A_11/3.0D0
+        !t31 = A_22/3.0D0
+        !t32 = A_33/3.0D0
+        !t16 = A_32*t6
+        !t17 = A_33*t6
+        !t18 = A_33*t7
+        !t19 = A_32*t9
+        !t20 = A_31*t11
+        !t21 = A_33*t10
+        !t22 = A_31*t13
+        !t23 = A_33*t11
+        !t25 = A_12*t2
+        !t26 = A_13*t2
+        !t27 = A_21*t3
+        !t28 = A_23*t3
+        !t33 = -t5
+        !t34 = -t9
+        !t35 = -t13
+        !t41 = t24**2
+        !t42 = t24**3
+        !t43 = t4/3.0D0
+        !t44 = t5/3.0D0
+        !t45 = t8/3.0D0
+        !t46 = t9/3.0D0
+        !t47 = t12/3.0D0
+        !t48 = t13/3.0D0
+        !t49 = (A_33*t4)/2.0D0
+        !t50 = (A_11*t13)/2.0D0
+        !t51 = (A_33*t5)/2.0D0
+        !t52 = (A_23*t7)/2.0D0
+        !t53 = (A_13*t10)/2.0D0
+        !t54 = (A_22*t9)/2.0D0
+        !t65 = t6+t10+t14
+        !t66 = t7+t11+t15
+        !t56 = -t43
+        !t57 = -t45
+        !t58 = -t47
+        !t60 = -t50
+        !t61 = -t51
+        !t64 = -t54
+        !t67 = t41/9.0D0
+        !t68 = t42/2.7D+1
+        !t73 = t4+t8+t12+t33+t34+t35
+        !t74 = -1.0D0/(t16-t20-t25+t27)
+        !t78 = (t18-t19+t23-t28)/(t16-t20-t25+t27)
+        !t75 = (t24*t73)/6.0D0
+        !t79 = t44+t46+t48+t56+t57+t58+t67
+        !t80 = t74*(t17+t21-t22-t26)
+        !t76 = -t75
+        !t81 = t79**3
+        !t82 = -t81
+        !t84 = (t49+t52+t53+t60+t61+t64+t68+t76)**2
+        !t85 = t82+t84
+        !t86 = sqrt(t85)
+        !t87 = t49+t52+t53+t60+t61+t64+t68+t76+t86
+        !t88 = t87**(1.0D0/3.0D0)
+        !t89 = 1.0D0/t88
+        !t91 = t88/2.0D0
+        !t92 = -t91
+        !t93 = t79*t89
+        !t94 = t93/2.0D0
+        !t97 = t29*(t88-t93)*(0.0D0,-5.0D-1)
+        !t98 = t29*(t88-t93)*(0.0D0,5.0D-1)
+        !t99 = t30+t31+t32+t88+t93
+        !t95 = -t94
+        !t100 = t99**2
+        !t101 = t30+t31+t32+t92+t95+t97
+        !t102 = t30+t31+t32+t92+t95+t98
+        !t103 = t101**2
+        !t104 = t102**2
+      
+      
+      call mat3_eigv_values()
       
       if(present(V)) then
-          V(1,1) = t78+(A_32*t100)/(t16-t20-t25+t27)+t66*t74*t99
-          V(2,1) = t80+A_31*t74*t100+(t65*t99)/(t16-t20-t25+t27)
-          V(3,1) = 1.0D0
-          
-          V(1,2) = t78+(A_32*t104)/(t16-t20-t25+t27)+t66*t74*t102
-          V(2,2) = t80+A_31*t74*t104+(t65*t102)/(t16-t20-t25+t27)
-          V(3,2) = 1.0D0
-          
-          V(1,3) = t78+(A_32*t103)/(t16-t20-t25+t27)+t66*t74*t101          
-          V(2,3) = t80+A_31*t74*t103+(t65*t101)/(t16-t20-t25+t27)          
-          V(3,3) = 1.0D0
+          do i=1, 3
+            call mat3_eigv_vector(L(i), V(:,i))
+          end do
       end if
             
-      D(1) = t99
-      D(2) = t102
-      D(3) = t101
+      !if(present(V)) then
+      !    V(1,1) = t78+(A_32*t100)/(t16-t20-t25+t27)+t66*t74*t99
+      !    V(2,1) = t80+A_31*t74*t100+(t65*t99)/(t16-t20-t25+t27)
+      !    V(3,1) = 1.0D0
+      !    
+      !    V(1,2) = t78+(A_32*t104)/(t16-t20-t25+t27)+t66*t74*t102
+      !    V(2,2) = t80+A_31*t74*t104+(t65*t102)/(t16-t20-t25+t27)
+      !    V(3,2) = 1.0D0
+      !    
+      !    V(1,3) = t78+(A_32*t103)/(t16-t20-t25+t27)+t66*t74*t101          
+      !    V(2,3) = t80+A_31*t74*t103+(t65*t101)/(t16-t20-t25+t27)          
+      !    V(3,3) = 1.0D0
+      !end if
+      !L(1) = t99
+      !L(2) = t102
+      !L(3) = t101
+    contains
+        subroutine mat3_eigv_values()
+        real(real64) :: ta,tb,tc,tq,tr,disc,theta
+        ! Characteristic polynomial: λ^3 + a*λ^2 + b*λ + c = 0
+        ta = - (A(1,1) + A(2,2) + A(3,3))
+        tb =   A(1,1)*A(2,2) + A(1,1)*A(3,3) + A(2,2)*A(3,3) &
+             - A(1,2)*A(2,1) - A(1,3)*A(3,1) - A(2,3)*A(3,2)
+        tc = - (A(1,1)*A(2,2)*A(3,3) + A(1,2)*A(2,3)*A(3,1) + A(1,3)*A(2,1)*A(3,2) &
+             - A(1,3)*A(2,2)*A(3,1) - A(1,1)*A(2,3)*A(3,2) - A(1,2)*A(2,1)*A(3,3))
+
+        ! Depressed cubic: x^3 + px + q = 0, where x = λ + a/3
+        tb = tb + ta*ta/3.0d0
+        tc = tc + ta*tb/3.0d0 + 2.0d0*ta**3/27.0d0
+
+        tq = tb/3.0d0
+        tr = -tc/2.0d0
+        disc = tq**3 + tr**2
+
+        if (disc > 0.0d0) then
+            ! One real root
+            L(1) = sign(1.0d0, tr+sqrt(disc)) * abs(tr+sqrt(disc))**(1.0d0/3.0d0) + &
+                   sign(1.0d0, tr-sqrt(disc)) * abs(tr-sqrt(disc))**(1.0d0/3.0d0) - ta/3.0d0
+            L(2) = NAN
+            L(3) = NAN
+        else
+            ! Three real roots
+            theta = acos(tr / sqrt(-tq**3))
+            L(1) = 2.0d0*sqrt(-tq)*cos(theta/3.0d0) - ta/3.0d0
+            L(2) = 2.0d0*sqrt(-tq)*cos((theta+2.0d0*pi)/3.0d0) - ta/3.0d0
+            L(3) = 2.0d0*sqrt(-tq)*cos((theta+4.0d0*pi)/3.0d0) - ta/3.0d0
+        end if
+        
+        end subroutine
+        subroutine mat3_eigv_vector(lambda, v)
+        use mod_native_vectors
+        real(real64), intent(in) :: lambda
+        real(real64), intent(out) :: v(3)
+        real(real64) :: M(3,3)
+        integer :: i, j, k
+        real(real64) :: mag
+
+        ! Form (A - lambda*I)
+        M = A
+        do i = 1, 3
+            M(i,i) = M(i,i) - lambda
+        end do
+
+        ! Find a nontrivial solution to M*v = 0
+        ! Use cross product of two rows (works if eigenvalues are distinct)
+        v = 0.0d0
+        v = cross(M(1,:), M(2,:))
+        mag = sqrt(sum(v**2))
+        if (mag < 1.0d-10) then
+            v = cross(M(1,:), M(3,:))
+            mag = sqrt(sum(v**2))
+            if (mag < 1.0d-10) then
+                v = cross(M(2,:), M(3,:))
+                mag = sqrt(sum(v**2))
+            end if
+        end if
+        if (mag > 1.0d-10) then
+            v = v / mag
+        end if        
+        end subroutine
     end
+    
 end submodule
 
 submodule (mod_array_inv) mod_array_inv_mat4

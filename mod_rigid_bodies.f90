@@ -20,7 +20,7 @@
     type(rigid_body) :: rb
     real(real64), intent(in) :: mass, dx,dy,dz
     real(real64), optional, intent(in) :: cg(3)
-    real(real64), parameter :: f= 1.0_wp/10
+    real(real64), parameter :: f= 1.0_real64/10
     
         rb%mass = mass
         if(present(cg)) then
@@ -37,7 +37,7 @@
     type(rigid_body) :: rb
     real(real64), intent(in) :: mass, dx,dy,dz
     real(real64), optional, intent(in) :: cg(3)
-    real(real64), parameter :: f= 1.0_wp/12
+    real(real64), parameter :: f= 1.0_real64/12
     
         rb%mass = mass
         if(present(cg)) then
@@ -54,7 +54,7 @@
     type(rigid_body) :: rb
     real(real64), intent(in) :: mass, diameter, height
     real(real64), optional, intent(in) :: cg(3)
-    real(real64), parameter :: fh= 1.0_wp/10, fd=1.0_wp/16
+    real(real64), parameter :: fh= 1.0_real64/10, fd=1.0_real64/16
     
         rb%mass = mass
         if(present(cg)) then
@@ -71,9 +71,9 @@
     real(real64), intent(in) :: mass, diameter
     real(real64), optional, intent(in) :: cg(3)
         if(present(cg)) then
-            rb = rb_cylinder(mass, diameter, 0.0_wp, cg)
+            rb = rb_cylinder(mass, diameter, 0.0_real64, cg)
         else
-            rb = rb_cylinder(mass, diameter, 0.0_wp)
+            rb = rb_cylinder(mass, diameter, 0.0_real64)
         end if
     end function
     pure function rb_rod(mass, length, cg) result(rb)
@@ -81,9 +81,9 @@
     real(real64), intent(in) :: mass, length
     real(real64), optional, intent(in) :: cg(3)
         if(present(cg)) then
-            rb = rb_cylinder(mass, 0.0_wp, length, cg)
+            rb = rb_cylinder(mass, 0.0_real64, length, cg)
         else
-            rb = rb_cylinder(mass, 0.0_wp, length)
+            rb = rb_cylinder(mass, 0.0_real64, length)
         end if
     end function
     
@@ -194,7 +194,7 @@
         L_A = state(11:13)
         call rb%get_motion(state, c, v_A, omega)
         rp_A = p/rb%mass - cross(omega,c)
-        qp = quat_product( [0.0_wp, omega/2], q)
+        qp = quat_product( [0.0_real64, omega/2], q)
         pp = force
         Lp_A = torque_A + cross(p, v_A)
         rate = [rp_A, qp, pp, Lp_A]
@@ -225,7 +225,7 @@
     real ( kind = 8 ) abserr
     real ( kind = 8 ) relerr
     
-    real(real64), parameter :: gravity_(3) = 0.0_wp*j_
+    real(real64), parameter :: gravity_(3) = 0.0_real64*j_
     real(real64), parameter :: dia = 1, ht=0.125, m = 1
     real(real64), parameter :: cg(3) = o_
         
@@ -279,8 +279,8 @@
         tau = o_
         F = o_        
                 
-        t = 0.0_wp
-        t_end = 10.0_wp
+        t = 0.0_real64
+        t_end = 10.0_real64
         y = state
         yp = rb_get_state_rate(rb, y, F, tau)
         abserr = sqrt ( epsilon ( t_end ) )
